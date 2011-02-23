@@ -1,3 +1,5 @@
+import ast
+
 from django.db import models
 
 def get_model_choices():
@@ -39,9 +41,10 @@ class DashboardWidget(models.Model):
         for comp in parts[1:]:
             m = getattr(m, comp)            
         return m
-
-    def data_points(self):
-       date_filter = {}
+       
+    def get_date_filter(self):
+       return {}
+       #TODO finish this
        """
        if self.time_period == 'DA':
            date_filter[ 
@@ -50,11 +53,17 @@ class DashboardWidget(models.Model):
        elif self.time_period == 'MO':
            date_filter = 
        """   
-       #TODO figure out filter_dict 
-       return self.get_class(self.model).objects.filter(**date_filter).order_by(self.datetime_field)
+
+    def data_points(self):
+       filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
+       date_filter = self.get_date_filter()
+       # Merge the dicts
+       overall_filter = dict(filter_dict_mapped, **date_filter)
+       return self.get_class(self.model).objects.filter(**overall_filter).order_by(self.datetime_field)
 
     def data_list(self):
         data_array = []
+        #TODO determine point/minute or whatever
         for index, data_point in enumerate(self.data_points()):
             datetime = getattr(data_point, self.datetime_field)
             data_array.append([datetime, index + 1])
