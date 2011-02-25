@@ -10,6 +10,7 @@ urlpatterns = patterns('',
         {'document_root': os.path.join(DASHBOARD_ROOT, 'media')}, name='dashboard-media'),
 
     #(r'^$', 'home', name='dashboard'),
-    (r'^widget/(?P<widget_id>\d+)/$', 'dashboard.views.widget'),
-    (r'^(?P<dashboard_name>\w+)/$', 'dashboard.views.dashboard'),
+    url(r'^widget/(?P<widget_id>\d+)/$', 'dashboard.views.widget'),
+    url(r'^(?P<dashboard_name>\w+)/$', 'dashboard.views.dashboard'),
+    url(r'^(?P<dashboard_name>\w+)/order/$', 'dashboard.views.widget_order', name='widget_order'),
 )

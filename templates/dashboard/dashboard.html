@@ -11,37 +11,28 @@
     <link rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.theme.css">
     <meta charset="utf-8">
 	<style>
-	    .column { width: 170px; float: left; padding-bottom: 100px; }
-	    .portlet { margin: 0 1em 1em 0; }
-	    .portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
-	    .portlet-header .ui-icon { float: right; }
-	    .portlet-content { padding: 0.4em; }
-	    .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
-	    .ui-sortable-placeholder * { visibility: hidden; }
+        #sortable { list-style-type: none; margin: 10px; padding: 0; }
+        #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; width: 750px; height: 600px; font-size: 4em; text-align: center; }
     </style>
     <script>
-	    $(function() {
-		    $( ".column" ).sortable({
-			    connectWith: ".column"
-		    });
-
-		    $( ".portlet" ).addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
-			    .find( ".portlet-header" )
-				    .addClass( "ui-widget-header ui-corner-all" )
-				    .prepend( "<span class='ui-icon ui-icon-minusthick'></span>")
-				    .end()
-			    .find( ".portlet-content" );
-
-		    $( ".portlet-header .ui-icon" ).click(function() {
-			    $( this ).toggleClass( "ui-icon-minusthick" ).toggleClass( "ui-icon-plusthick" );
-			    $( this ).parents( ".portlet:first" ).find( ".portlet-content" ).toggle();
-		    });
-
-		    $( ".column" ).disableSelection();
-            $( ".demo" ).bind("sortupdate", function(event, ui) {
-                console.log("update");
+        $(function() {
+            $("#sortable").sortable();
+            $("#sortable").disableSelection();
+            $("#sortable").bind("sortupdate", function() {
+                $("#redrawer").click();
+                var id_order = new Array();
+                $(".sortable-object").each(function() {
+                    var widget_id = $(this).attr("data-id");
+                    id_order.push(widget_id);
+                });
+                $.ajax({
+                    type: "POST",
+                    url: "{% url widget_order dashboard_name=dashboard.name %}",
+                    data: "ids=" + id_order,
+                    success: function() { console.log("success"); }
+                });
             });
-	    });
+        });
     </script>
 
     {% for widget in widgets %}
@@ -55,39 +46,13 @@
     <input id="redrawer" type="submit" />
     <div class="demo">
 
-    <div class="column" style="width: 750px;">
-        {% for widget in widgets %}
-	    <div class="portlet">
-		    <div class="portlet-header">Feeds</div>
-		    <div class="portlet-content">{% widget_tag_body widget %}</div>
-	    </div>
-        {% endfor %}
-    </div>
-    <!-- TODO setup ajax call on sort update -->
+        <ul id="sortable">
+            {% for widget in widgets %}
+            <li class="ui-state-default sortable-object" data-id="{{ widget.id }}">{% widget_tag_body widget %}</li>
+            {% endfor %}
+        </ul>
+        <!-- TODO setup ajax call on sort update -->
 
-    <div class="column" style="width: 750px;">
-
-<!--	    <div class="portlet">
-		    <div class="portlet-header">Shopping</div>
-		    <div class="portlet-content">Lorem ipsum dolor sit amet, consectetuer adipiscing elit</div>
-	    </div>
-        -->
-    </div>
-<!--
-    <div class="column">
-
-	    <div class="portlet">
-		    <div class="portlet-header">Links</div>
-		    <div class="portlet-content">Lorem ipsum dolor sit amet, consectetuer adipiscing elit</div>
-	    </div>
-	
-	    <div class="portlet">
-		    <div class="portlet-header">Images</div>
-		    <div class="portlet-content">Lorem ipsum dolor sit amet, consectetuer adipiscing elit</div>
-	    </div>
-
-    </div>
--->
     </div><!-- End demo -->
 
 {% endblock %}
