@@ -1,0 +1,29 @@
+    <script type='text/javascript'>
+      google.load('visualization', '1', {'packages':['corechart']});
+      google.setOnLoadCallback(drawChart{{ widget.id }});
+      function drawChart{{ widget.id }}() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        data.addColumn('number', '{{ widget.get_model_display }}.{{ widget.datetime_field }}');
+        //data.addColumn('string', 'title1');
+        //data.addColumn('string', 'text1');
+        data.addRows([
+            
+            {% for point in data_points %}
+            [new Date({{ point.0.year }}, {{ point.0.month }}, {{ point.0.day }}, {{ point.0.hour }}, {{ point.0.minute }}), {{ point.1 }}],
+            {% endfor %}
+           
+        ]);
+
+        var chart = new google.visualization.AreaChart(document.getElementById('chart_div{{ widget.id }}'));
+        chart.draw(data);
+      }
+
+
+      $("#redrawer").live('click', function() {
+        console.log("inside");  
+        drawChart{{ widget.id }}();  
+      });
+
+    </script>
+
