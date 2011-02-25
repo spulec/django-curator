@@ -1,4 +1,5 @@
 import ast
+import datetime
 
 from django.db import models
 
@@ -7,13 +8,13 @@ def get_model_choices():
     all_models = []
     for app in apps:
         all_models += models.get_models(app)
-    return [(model.__module__ + "." + model.__name__, model.__module__ + "." + model.__name__) for model in all_models]
+    return [(model.__module__ + "." + model.__name__, model.__name__) for model in all_models]
 
 MODEL_CHOICES = get_model_choices()
 TIME_PERIOD_CHOICES = (
     ('DA', 'Daily'),
     ('WE', 'Weekly'),
-    ('MO', 'Monthly'),
+    #('MO', 'Monthly'),
 )
 
 
@@ -42,31 +43,47 @@ class DashboardWidget(models.Model):
             m = getattr(m, comp)            
         return m
        
-    def get_date_filter(self):
-       return {}
-       #TODO finish this
-       """
-       if self.time_period == 'DA':
-           date_filter[ 
-       elif self.time_period == 'WE':
-           date_filter = 
-       elif self.time_period == 'MO':
-           date_filter = 
-       """   
+    def get_time_edges(self):
+        now = datetime.datetime.now()
+        today = datetime.date.today()
+
+        if self.time_period == 'DA':
+             return (today, now)
+        elif self.time_period == 'WE':
+             return (today - datetime.timedelta(days=7), now)
+        #elif self.time_period == 'MO':
+        #    date_filter = 
+        return (None, None)
 
     def data_points(self):
-       filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
-       date_filter = self.get_date_filter()
-       # Merge the dicts
-       overall_filter = dict(filter_dict_mapped, **date_filter)
-       return self.get_class(self.model).objects.filter(**overall_filter).order_by(self.datetime_field)
+        filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
+        date_query = "%s__range" % self.datetime_field
+        date_filter = {}
+        date_filter[date_query] = self.get_time_edges()
+        # Merge the dicts
+        overall_filter = dict(filter_dict_mapped, **date_filter)
+        return self.get_class(self.model).objects.filter(**overall_filter).order_by(self.datetime_field)
 
     def data_list(self):
         data_array = []
-        #TODO determine point/minute or whatever
-        for index, data_point in enumerate(self.data_points()):
-            datetime = getattr(data_point, self.datetime_field)
-            data_array.append([datetime, index + 1])
+        # User.objects.extra({'date_created': "date(date_joined)"}).values('date_created').annotate(created_count=Count('id'))
+        
+        time_range = self.get_time_range()
+        time_range.reverse()
+
+        points = self.data_points()
+        for index, curr_time in enumerate(time_range):
+            if index + 1 == len(time_range): continue
+            date_filter = {"%s__range" % self.datetime_field: (curr_time, time_range[index+1])}
+            data_array.append((curr_time, points.filter(**date_filter).count()))
         return data_array
 
+    def get_time_range(self):
+        now = datetime.datetime.now()
+        if self.time_period == 'DA':
+            return [now - datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
+        elif self.time_period == 'WE':
+            # TODO change this from 24*6 to the curr week
+            return [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
+        #TODO complete this
 
