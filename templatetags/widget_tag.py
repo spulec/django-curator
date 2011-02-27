@@ -4,10 +4,11 @@ register = template.Library()
 
 @register.inclusion_tag("dashboard/widget_block_head.html")
 def widget_tag_head(widget):
-    widget_data = widget.data_list()
+    widget_data, time_intervals = widget.data_list()
     return {
             'widget': widget,
             'model_name': widget.get_model_display(),
+            'time_intervals': time_intervals,
             'data_points': widget_data,
         }
 
