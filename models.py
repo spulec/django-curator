@@ -57,7 +57,7 @@ class DashboardWidget(models.Model):
 
     def data_points(self):
         filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
-        date_query = "%s__range" % self.datetime_field
+        date_query = str("%s__range" % self.datetime_field)
         date_filter = {}
         date_filter[date_query] = self.get_time_edges()
         # Merge the dicts
@@ -74,7 +74,7 @@ class DashboardWidget(models.Model):
         points = self.data_points()
         for index, curr_time in enumerate(time_range):
             if index + 1 == len(time_range): continue
-            date_filter = {"%s__range" % self.datetime_field: (curr_time, time_range[index+1])}
+            date_filter = {str("%s__range" % self.datetime_field): (curr_time, time_range[index+1])}
             data_array.append((curr_time, points.filter(**date_filter).count()))
         return data_array
 
