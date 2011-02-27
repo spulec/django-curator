@@ -15,6 +15,7 @@ TIME_PERIOD_CHOICES = (
     ('DA', 'Daily'),
     ('WE', 'Weekly'),
     #('MO', 'Monthly'),
+    # TODO add more
 )
 
 
@@ -51,9 +52,7 @@ class DashboardWidget(models.Model):
              return (today, now)
         elif self.time_period == 'WE':
              return (today - datetime.timedelta(days=7), now)
-        #elif self.time_period == 'MO':
-        #    date_filter = 
-        return (None, None)
+        #return (None, None)
 
     def data_points(self):
         filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
@@ -68,7 +67,7 @@ class DashboardWidget(models.Model):
         data_array = []
         # User.objects.extra({'date_created': "date(date_joined)"}).values('date_created').annotate(created_count=Count('id'))
         
-        time_range = self.get_time_range()
+        time_range, time_interval_count = self.get_time_range()
         time_range.reverse()
 
         points = self.data_points()
@@ -76,14 +75,16 @@ class DashboardWidget(models.Model):
             if index + 1 == len(time_range): continue
             date_filter = {str("%s__range" % self.datetime_field): (curr_time, time_range[index+1])}
             data_array.append((curr_time, points.filter(**date_filter).count()))
-        return data_array
+        return data_array, time_interval_count
 
     def get_time_range(self):
         now = datetime.datetime.now()
         if self.time_period == 'DA':
-            return [now - datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
+            time_range = [now - datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/6)]
+            return time_range, 24 
         elif self.time_period == 'WE':
             # TODO change this from 24*6 to the curr week
-            return [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
-        #TODO complete this
+            time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
+            return time_range, 24
+
 
