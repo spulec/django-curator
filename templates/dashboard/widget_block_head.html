@@ -2,32 +2,75 @@
       google.load('visualization', '1', {'packages':['corechart']});
       google.setOnLoadCallback(drawChart{{ widget.id }});
       function drawChart{{ widget.id }}() {
+        $("#data_loading_img{{ widget.id }}").show();
         var data = new google.visualization.DataTable();
         data.addColumn('datetime', 'Date');
         data.addColumn('number', '{{ widget.get_model_display }}.{{ widget.datetime_field }}');
         data.addRows([
-            
-            {% for point in data_points %}
-                [new Date({{ point.0.year }}, {{ point.0.month }} - 1, {{ point.0.day }}, {{ point.0.hour }}, {{ point.0.minute }}), {{ point.1 }}],
-            {% endfor %}
-           
+            // Add a blank row because google charts blows up otherwise.
+            [undefined, undefined],
         ]);
 
         var options = {
                 height: 550,
                 hAxis: {
-                    showTextEvery: {{ time_intervals }},
+                    //TODO set this with ajax
+                    //showTextEvery: {{ time_intervals }},
                 },
                 legend: 'bottom',
         }
-        var chart = new google.visualization.AreaChart(document.getElementById('chart_div{{ widget.id }}'));
-        chart.draw(data, options);
+        chart_data[{{ widget.id }}] = data;
+        chart_options[{{ widget.id }}] = options;
+        
+        redrawChart({{ widget.id }});
+        
+        $.ajax({
+            type: "GET",
+            url: "{% url widget_data widget.id %}",
+            success: function(json_data) { 
+                console.log("success-data-ajax");
+                $.each(json_data['data_points'], function(index, value) {
+                    value[0] = new Date(value[0]);
+                    data.addRow(value);
+                });
+                data.removeRow(0);
+                options.hAxis.showTextEvery = json_data['time_intervals']
+                chart_data[{{ widget.id }}] = data;
+                chart_options[{{ widget.id }}] = options;
+                redrawChart({{ widget.id }});
+                $("#data_loading_img{{ widget.id }}").hide();
+            }
+        });
       }
 
+      jQuery(document).ready(function($) {
 
-      $("#redrawer").live('click', function() {
-        drawChart{{ widget.id }}();  
+          $("#fullscreen_btn{{ widget.id }}").live("click", function() {
+              window.open("{% url widget_view widget.id %}", 'window', ',type=fullWindow,fullscreen,scrollbars=no');
+          });
+            
+          $("#redrawer").live('click', function() {
+              redrawChart({{ widget.id }});
+          });
+        
+          $("#fullscreen_btn{{ widget.id }}").button({
+              text: false,
+              icons: {
+                  primary: "ui-icon-plusthick"
+              }
+          });
+          
+          $("#reload_btn{{ widget.id }}").button({
+                text: false,
+                icons: {
+                    primary: "ui-icon-arrowrefresh-1-e"
+                }
+          });
+          
+          $("#reload_btn{{ widget.id }}").live("click", function() {
+              drawChart{{ widget.id }}();
+          });
+
       });
-
     </script>
 

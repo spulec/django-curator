@@ -68,23 +68,24 @@ class DashboardWidget(models.Model):
         # User.objects.extra({'date_created': "date(date_joined)"}).values('date_created').annotate(created_count=Count('id'))
         
         time_range, time_interval_count = self.get_time_range()
-        time_range.reverse()
 
         points = self.data_points()
         for index, curr_time in enumerate(time_range):
             if index + 1 == len(time_range): continue
             date_filter = {str("%s__range" % self.datetime_field): (curr_time, time_range[index+1])}
-            data_array.append((curr_time, points.filter(**date_filter).count()))
+            data_array.append((str(curr_time), points.filter(**date_filter).count()))
         return data_array, time_interval_count
 
     def get_time_range(self):
         now = datetime.datetime.now()
+        today = datetime.datetime(now.year, now.month, now.day)
         if self.time_period == 'DA':
-            time_range = [now - datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/6)]
-            return time_range, 24 
+            time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
+            return time_range, 24
         elif self.time_period == 'WE':
             # TODO change this from 24*6 to the curr week
             time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
+            time_range.reverse()
             return time_range, 24
 
 
