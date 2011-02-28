@@ -46,7 +46,7 @@
       jQuery(document).ready(function($) {
 
           $("#fullscreen_btn{{ widget.id }}").live("click", function() {
-              window.open("{% url widget_view widget.id %}", 'window', ',type=fullWindow,fullscreen,scrollbars=no');
+              window.open("{% url widget_view widget.id %}", 'window', ',type=fullWindow,fullscreen,scrollbars=no,top=0,left=0,height=' + screen.height + ',width=' + screen.width);
           });
             
           $("#redrawer").live('click', function() {

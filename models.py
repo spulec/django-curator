@@ -36,14 +36,19 @@ class DashboardWidget(models.Model):
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)
 
-    def get_class(self, kls):
+    def get_class(self):
+        kls = self.model
         parts = kls.split('.')
         module = ".".join(parts[:-1])
         m = __import__( module )
         for comp in parts[1:]:
             m = getattr(m, comp)            
         return m
-       
+    
+    def get_datetime_fields(self):
+        fields = self.get_class()._meta.local_fields
+        return [(field.name, field.name) for field in fields if field.__class__.__name__ in ['DateField', 'DateTimeField']]
+
     def get_time_edges(self):
         now = datetime.datetime.now()
         today = datetime.date.today()
@@ -61,7 +66,7 @@ class DashboardWidget(models.Model):
         date_filter[date_query] = self.get_time_edges()
         # Merge the dicts
         overall_filter = dict(filter_dict_mapped, **date_filter)
-        return self.get_class(self.model).objects.filter(**overall_filter).order_by(self.datetime_field)
+        return self.get_class().objects.filter(**overall_filter).order_by(self.datetime_field)
 
     def data_list(self):
         data_array = []
