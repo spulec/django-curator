@@ -1,0 +1,24 @@
+{% extends "admin/change_form.html" %}
+
+{% block extra_head %}
+        <script type="text/javascript" charset="utf-8"> 
+            function FilterModels() { 
+                var makeslist = document.getElementById('makes'); 
+                var modelslist = document.getElementById('models'); 
+                var make_id = makeslist.options[makeslist.selectedIndex].value; 
+                var modelstxt = new Array(); 
+                modelstxt[1] = "1\tEscort\n2\tTaurus"; 
+                modelstxt[2] = "1\tAltima\n2\tMaxima"; 
+                var models = modelstxt[make_id].split("\n"); 
+                for (var count = modelslist.options.length-1; count >-1; count--){ 
+                    modelslist.options[count] = null; 
+                } 
+                for (i=0; i<models.length; i++){ 
+                    var modelvals = models[i].split("\t"); 
+                    var option = new Option(modelvals[1], modelvals[2], false, false); 
+                    modelslist.options[modelslist.length] = option; 
+                } 
+            } 
+        </script> 
+
+{% endblock %}
