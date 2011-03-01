@@ -4,14 +4,38 @@
 {% block head %}
     <style>
         #sortable { list-style-type: none; margin: 10px; padding: 0; }
-        #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; width: 750px; height: 600px; font-size: 4em; text-align: center; }
+        #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; font-size: 4em; text-align: center; }
     </style>
     <script>
         jQuery(document).ready(function($) {
+            $(".sortable-object").each(function() { 
+                $(this).resizable({});
+            });
+            
             $("#sortable").sortable();
-            /*$('.sortable-object').each(function(){ 
-                $(this).resizable({ alsoReduce: 'div' }); 
-            });*/
+            $('.sortable-object').each(function(){ 
+                $(this).resizable({ 
+                    resize: function(event, ui) {
+                        //console.log("here");
+                        //$(this).find("div").css(ui.size);
+                    },
+                    stop: function(event, ui) { 
+                        console.log("bleh");
+                        var widget_id = $(this).attr("data-id"); 
+                        $(this).find(".chart_div").css(ui.size);
+                        chart_options[widget_id].height = .9 * ui.size.height;
+                        chart_options[widget_id].width = ui.size.width;
+
+                        redrawChart($(this).attr("data-id")); 
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url widget_size %}",
+                            data: {"id": widget_id, "height": ui.size.height, "width": ui.size.width},
+                            success: function() { console.log("success-order"); }
+                        });
+                    }
+                });
+            });
 
             //$("#sortable").disableSelection();
             $("#sortable").bind("sortupdate", function() {
@@ -39,13 +63,12 @@
 {% endblock %}
 
 {% block body %}
-
     <input id="redrawer" type="submit" />
     <div class="demo">
 
         <ul id="sortable">
             {% for widget in widgets %}
-            <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="z-index: -100;">{% widget_tag_body widget %}</li>
+            <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="height: {{ widget.height }}; width: {{ widget.width }};">{% widget_tag_body widget %}</li>
             {% endfor %}
         </ul>
         <!-- TODO setup ajax call on sort update -->

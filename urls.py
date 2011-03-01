@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     
     url(r'^widget/(?P<widget_id>\d+)/$', 'dashboard.views.widget', name='widget_view'),
     url(r'^widget/(?P<widget_id>\d+)/data$', 'dashboard.views.widget_data', name='widget_data'),
+    url(r'^widget_size/$', 'dashboard.views.widget_size', name='widget_size'),
     url(r'^(?P<dashboard_name>\w+)/$', 'dashboard.views.dashboard', name='dashboard_view'),
     url(r'^(?P<dashboard_name>\w+)/order/$', 'dashboard.views.widget_order', name='widget_order'),
 )

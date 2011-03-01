@@ -32,6 +32,8 @@ class DashboardWidget(models.Model):
     time_period = models.CharField(max_length=2, choices=TIME_PERIOD_CHOICES)
     datetime_field = models.CharField(max_length=255)
     order = models.IntegerField()
+    height = models.IntegerField()
+    width = models.IntegerField()
 
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)

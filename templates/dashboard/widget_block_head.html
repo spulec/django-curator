@@ -12,12 +12,13 @@
         ]);
 
         var options = {
-                height: 550,
+                height: .9 * {{ widget.height }},
                 hAxis: {
                     //TODO set this with ajax
                     //showTextEvery: {{ time_intervals }},
                 },
                 legend: 'bottom',
+                width: {{ widget.width }},
         }
         chart_data[{{ widget.id }}] = data;
         chart_options[{{ widget.id }}] = options;

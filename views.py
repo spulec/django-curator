@@ -26,9 +26,17 @@ def widget_order(request, dashboard_name):
         widget = DashboardWidget.objects.get(id=curr_id)
         widget.order = index
         widget.save()
-    return render_to_response("dashboard/widget.html", {
-        "widget": widget,
-    })
+    return HttpResponse("ok")
+
+def widget_size(request):
+    widget_id = request.POST.get("id")
+    height = request.POST.get("height")
+    width = request.POST.get("width")
+    widget = DashboardWidget.objects.get(id=widget_id)
+    widget.height = height
+    widget.width = width
+    widget.save()
+    return HttpResponse("ok")
 
 def widget_data(request, widget_id):
     widget = get_object_or_404(DashboardWidget, id=widget_id)
