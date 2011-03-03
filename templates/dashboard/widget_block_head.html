@@ -24,7 +24,8 @@
         chart_options[{{ widget.id }}] = options;
         
         redrawChart({{ widget.id }});
-        
+
+        //TODO make this call own function and only call it going forward
         $.ajax({
             type: "GET",
             url: "{% url widget_data widget.id %}",

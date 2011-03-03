@@ -18,6 +18,8 @@ TIME_PERIOD_CHOICES = (
     # TODO add more
 )
 
+LOADING_IMG_HEIGHT = 19
+LOADING_IMG_WIDTH = 220
 
 class Dashboard(models.Model):
     name = models.CharField(max_length=255)
@@ -95,4 +97,11 @@ class DashboardWidget(models.Model):
             time_range.reverse()
             return time_range, 24
 
+    @property
+    def loader_top(self):
+        return (self.height - LOADING_IMG_HEIGHT) / 2.0
+
+    @property
+    def loader_left(self):
+        return (self.width - LOADING_IMG_WIDTH) / 2.0
 
