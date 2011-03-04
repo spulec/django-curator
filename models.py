@@ -90,12 +90,12 @@ class DashboardWidget(models.Model):
         today = datetime.datetime(now.year, now.month, now.day)
         if self.time_period == 'DA':
             time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
-            return time_range, 24
+            return time_range, now.hour/4
         elif self.time_period == 'WE':
             # TODO change this from 24*6 to the curr week
             time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
             time_range.reverse()
-            return time_range, 24
+            return time_range, 7#12 + now.hour/12
 
     @property
     def loader_top(self):

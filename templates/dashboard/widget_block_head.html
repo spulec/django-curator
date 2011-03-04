@@ -1,42 +1,47 @@
     <script type='text/javascript'>
-      google.load('visualization', '1', {'packages':['corechart']});
-      google.setOnLoadCallback(drawChart{{ widget.id }});
-      function drawChart{{ widget.id }}() {
+        
+      function loadChart{{ widget.id }}() {
         $("#data_loading_img{{ widget.id }}").show();
-        var data = new google.visualization.DataTable();
-        data.addColumn('datetime', 'Date');
-        data.addColumn('number', '{{ widget.get_model_display }}.{{ widget.datetime_field }}');
-        data.addRows([
+        //data.addColumn('number', '{{ widget.get_model_display }}.{{ widget.datetime_field }}');
+        var data = [
             // Add a blank row because google charts blows up otherwise.
-            [undefined, undefined],
-        ]);
-
+            //[undefined, undefined],
+        ];
+        
         var options = {
-                height: .9 * {{ widget.height }},
+            xaxis: { mode: "time" },
+            yaxis: { min: 0 },
+            /*         height: .9 * {{ widget.height }},
                 hAxis: {
                     //TODO set this with ajax
                     //showTextEvery: {{ time_intervals }},
                 },
                 legend: 'bottom',
-                width: {{ widget.width }},
+                width: {{ widget.width }},*/
         }
+        
         chart_data[{{ widget.id }}] = data;
         chart_options[{{ widget.id }}] = options;
-        
         redrawChart({{ widget.id }});
 
         //TODO make this call own function and only call it going forward
         $.ajax({
-            type: "GET",
+            method: "GET",
+            dataType: 'json',
             url: "{% url widget_data widget.id %}",
             success: function(json_data) { 
-                console.log("success-data-ajax");
+                console.log("success-data-ajax: " + json_data['data_points'].length);
                 $.each(json_data['data_points'], function(index, value) {
-                    value[0] = new Date(value[0]);
-                    data.addRow(value);
+                    value[0] = new Date(value[0]).getTime();
+                    data.push(value);
                 });
-                data.removeRow(0);
-                options.hAxis.showTextEvery = json_data['time_intervals']
+                options.xaxis = {
+                    mode: "time",
+                    ticks: json_data['time_intervals'],
+                    min: data[0][0],
+                    max: data[data.length-1][0],
+                }    
+
                 chart_data[{{ widget.id }}] = data;
                 chart_options[{{ widget.id }}] = options;
                 redrawChart({{ widget.id }});
@@ -70,9 +75,10 @@
           });
           
           $("#reload_btn{{ widget.id }}").live("click", function() {
-              drawChart{{ widget.id }}();
+              loadChart{{ widget.id }}();
           });
 
+          loadChart{{ widget.id }}();
       });
     </script>
 
