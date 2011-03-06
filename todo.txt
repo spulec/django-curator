@@ -1,0 +1,13 @@
+-figure out numTicks
+-fix sorting widget column issues
+-add all-time period
+-fix fullscreen widget issue
+-remove submit button
+-decide on datetime_field dropdown
+-fix legend overlap
+-clean up imports
+
+
+-mouse hover on chart
+-better colors
+

@@ -2,7 +2,7 @@
         
       function loadChart{{ widget.id }}() {
         $("#data_loading_img{{ widget.id }}").show();
-        var data_list = [{data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "#333"}];
+        var data_list = [{data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "blue"}];
         
         var options = {
             xaxis: { mode: "time" },
@@ -10,7 +10,7 @@
             legend: {
                 backgroundOpacity: 0,
                 position: "se",
-            }
+            },
         }
         
         chart_data[{{ widget.id }}] = data_list;

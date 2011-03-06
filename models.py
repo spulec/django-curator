@@ -27,9 +27,6 @@ TIME_PERIOD_CHOICES = (
 LOADING_IMG_HEIGHT = 19
 LOADING_IMG_WIDTH = 220
         
-# Set first weekday to Sunday
-calendar.setfirstweekday(6)
-
 class Dashboard(models.Model):
     name = models.CharField(max_length=255)
 
@@ -82,6 +79,9 @@ class DashboardWidget(models.Model):
     def get_time_range(self):
         now = datetime.datetime.now()
         today = datetime.datetime(now.year, now.month, now.day)
+        # Set first weekday to Sunday
+        calendar.setfirstweekday(6)
+        
         if self.time_period == 'DA':
             time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
             return time_range, now.hour/4
@@ -90,15 +90,16 @@ class DashboardWidget(models.Model):
             time_range.reverse()
             return time_range, 6
         elif self.time_period == 'WE':
-            first_week_day = today - datetime.timedelta(days=calendar.weekday(now.year, now.month, now.day))
-            time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(0, 7 * 24)]
+            day_of_week = calendar.weekday(now.year, now.month, now.day)
+            first_week_day = today - datetime.timedelta(days=day_of_week)
+            time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(0, day_of_week * 24)]
             return time_range, 7
         elif self.time_period == '7D':
             time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24 * 6)]
             time_range.reverse()
             return time_range, 7
         elif self.time_period == 'MO':
-            first_month_day = datetime.datetime(now.year, now.month, now.day)
+            first_month_day = datetime.datetime(now.year, now.month, 1)
             time_range = [first_month_day + datetime.timedelta(days=x) for x in range(0, now.day)]
             return time_range, now.day
         elif self.time_period == '30':
