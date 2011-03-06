@@ -2,25 +2,18 @@
         
       function loadChart{{ widget.id }}() {
         $("#data_loading_img{{ widget.id }}").show();
-        //data.addColumn('number', '{{ widget.get_model_display }}.{{ widget.datetime_field }}');
-        var data = [
-            // Add a blank row because google charts blows up otherwise.
-            //[undefined, undefined],
-        ];
+        var data_list = [{data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "#333"}];
         
         var options = {
             xaxis: { mode: "time" },
             yaxis: { min: 0 },
-            /*         height: .9 * {{ widget.height }},
-                hAxis: {
-                    //TODO set this with ajax
-                    //showTextEvery: {{ time_intervals }},
-                },
-                legend: 'bottom',
-                width: {{ widget.width }},*/
+            legend: {
+                backgroundOpacity: 0,
+                position: "se",
+            }
         }
         
-        chart_data[{{ widget.id }}] = data;
+        chart_data[{{ widget.id }}] = data_list;
         chart_options[{{ widget.id }}] = options;
         redrawChart({{ widget.id }});
 
@@ -31,6 +24,8 @@
             url: "{% url widget_data widget.id %}",
             success: function(json_data) { 
                 console.log("success-data-ajax: " + json_data['data_points'].length);
+                
+                data = data_list[0].data
                 $.each(json_data['data_points'], function(index, value) {
                     value[0] = new Date(value[0]).getTime();
                     data.push(value);
@@ -38,11 +33,11 @@
                 options.xaxis = {
                     mode: "time",
                     ticks: json_data['time_intervals'],
-                    min: data[0][0],
-                    max: data[data.length-1][0],
+                    //min: data[0][0],
+                    //max: data[data.length-1][0],
                 }    
 
-                chart_data[{{ widget.id }}] = data;
+                chart_data[{{ widget.id }}] = data_list;
                 chart_options[{{ widget.id }}] = options;
                 redrawChart({{ widget.id }});
                 $("#data_loading_img{{ widget.id }}").hide();

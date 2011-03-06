@@ -1,4 +1,5 @@
 import ast
+import calendar
 import datetime
 
 from django.db import models
@@ -13,13 +14,21 @@ def get_model_choices():
 MODEL_CHOICES = get_model_choices()
 TIME_PERIOD_CHOICES = (
     ('DA', 'Daily'),
+    ('24', '24 Hours'),
     ('WE', 'Weekly'),
-    #('MO', 'Monthly'),
-    # TODO add more
+    ('7D', '7 Days'),
+    ('MO', 'Monthly'),
+    ('30', '30 Days'),
+    ('YR', 'Year'),
+    ('36', '365 Days'),
+    ('AT', 'All Time'),
 )
 
 LOADING_IMG_HEIGHT = 19
 LOADING_IMG_WIDTH = 220
+        
+# Set first weekday to Sunday
+calendar.setfirstweekday(6)
 
 class Dashboard(models.Model):
     name = models.CharField(max_length=255)
@@ -58,10 +67,24 @@ class DashboardWidget(models.Model):
         today = datetime.date.today()
 
         if self.time_period == 'DA':
-             return (today, now)
+            return (today, now)
+        elif self.time_period == '24':
+            return (now - datetime.timedelta(days=1), now)
         elif self.time_period == 'WE':
-             return (today - datetime.timedelta(days=7), now)
-        #return (None, None)
+            day_of_week = calendar.weekday(now.year, now.month, now.day)
+            return (today - datetime.timedelta(days=day_of_week), now)
+        elif self.time_period == '7D':
+            return (today - datetime.timedelta(days=7), now)
+        elif self.time_period == 'MO':
+            return (today - datetime.timedelta(days=today.day), now)
+        elif self.time_period == '30':
+            return (today - datetime.timedelta(days=30), now)
+        elif self.time_period == 'YR':
+            return (today - datetime.timedelta(days=today.day), now)
+        elif self.time_period == '36':
+            return (today - datetime.timedelta(days=365), now)
+        elif self.time_period == 'AT':
+            return (None, now)
 
     def data_points(self):
         filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
@@ -91,11 +114,23 @@ class DashboardWidget(models.Model):
         if self.time_period == 'DA':
             time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
             return time_range, now.hour/4
+        elif self.time_period == '24':
+            time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
+            return time_range, now.hour/4
         elif self.time_period == 'WE':
             # TODO change this from 24*6 to the curr week
             time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
             time_range.reverse()
             return time_range, 7#12 + now.hour/12
+        """
+        TODO
+        ('7D', '7 Days'),
+        ('MO', 'Monthly'),
+        ('30', '30 Days'),
+        ('YR', 'Year'),
+        36
+        ('AT', 'All Time'),
+        """
 
     @property
     def loader_top(self):

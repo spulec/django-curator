@@ -5,9 +5,11 @@
     <style>
         #sortable { list-style-type: none; margin: 10px; padding: 0; }
         #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; font-size: 4em; text-align: center; }
+        .tickLabel { padding-top: 20px; }
     </style>
     <script>
         jQuery(document).ready(function($) {
+            WIDGET_SIZE_FACTOR = .9
             $(".sortable-object").each(function() { 
                 $(this).resizable({});
             });
@@ -22,18 +24,18 @@
                     stop: function(event, ui) { 
                         console.log("bleh");
                         var widget_id = $(this).attr("data-id"); 
-                        $(this).find(".chart_div").css(ui.size);
-                        chart_options[widget_id].height = .9 * ui.size.height;
-                        chart_options[widget_id].width = ui.size.width;
+                        $(this).find(".chart_div").height(WIDGET_SIZE_FACTOR * ui.size.height);
+                        $(this).find(".chart_div").width(WIDGET_SIZE_FACTOR * ui.size.width);
+                        //$(this).find(".chart_div").css(ui.size);
 
-                        redrawChart($(this).attr("data-id")); 
-                        /*
+                        redrawChart(widget_id); 
+                        
                         $.ajax({
                             type: "POST",
                             url: "{% url widget_size %}",
-                            data: {"id": widget_id, "height": ui.size.height, "width": ui.size.width},
+                            data: {"id": widget_id, "height": WIDGET_SIZE_FACTOR * ui.size.height, "width": WIDGET_SIZE_FACTOR * ui.size.width},
                             success: function() { console.log("success-size"); }
-                        });*/
+                        });
                     }
                 });
             });
@@ -72,7 +74,6 @@
             <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="height: {{ widget.height }}; width: {{ widget.width }};">{% widget_tag_body widget %}</li>
             {% endfor %}
         </ul>
-        <!-- TODO setup ajax call on sort update -->
 
     </div><!-- End demo -->
 

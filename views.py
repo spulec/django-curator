@@ -30,8 +30,8 @@ def widget_order(request, dashboard_name):
 
 def widget_size(request):
     widget_id = request.POST.get("id")
-    height = request.POST.get("height")
-    width = request.POST.get("width")
+    height = int(round(float(request.POST.get("height"))))
+    width = int(round(float(request.POST.get("width"))))
     widget = DashboardWidget.objects.get(id=widget_id)
     widget.height = height
     widget.width = width
