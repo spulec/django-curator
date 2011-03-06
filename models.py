@@ -62,52 +62,23 @@ class DashboardWidget(models.Model):
         fields = self.get_class()._meta.local_fields
         return [(field.name, field.name) for field in fields if field.__class__.__name__ in ['DateField', 'DateTimeField']]
 
-    def get_time_edges(self):
-        now = datetime.datetime.now()
-        today = datetime.date.today()
-
-        if self.time_period == 'DA':
-            return (today, now)
-        elif self.time_period == '24':
-            return (now - datetime.timedelta(days=1), now)
-        elif self.time_period == 'WE':
-            day_of_week = calendar.weekday(now.year, now.month, now.day)
-            return (today - datetime.timedelta(days=day_of_week), now)
-        elif self.time_period == '7D':
-            return (today - datetime.timedelta(days=7), now)
-        elif self.time_period == 'MO':
-            return (today - datetime.timedelta(days=today.day), now)
-        elif self.time_period == '30':
-            return (today - datetime.timedelta(days=30), now)
-        elif self.time_period == 'YR':
-            return (today - datetime.timedelta(days=today.day), now)
-        elif self.time_period == '36':
-            return (today - datetime.timedelta(days=365), now)
-        elif self.time_period == 'AT':
-            return (None, now)
-
     def data_points(self):
-        filter_dict_mapped = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
-        date_query = str("%s__range" % self.datetime_field)
-        date_filter = {}
-        date_filter[date_query] = self.get_time_edges()
-        # Merge the dicts
-        overall_filter = dict(filter_dict_mapped, **date_filter)
-        return self.get_class().objects.filter(**overall_filter).order_by(self.datetime_field)
-
+        filter_dict = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
+        return self.get_class().objects.filter(**filter_dict).order_by(self.datetime_field)
+    
     def data_list(self):
         data_array = []
         # User.objects.extra({'date_created': "date(date_joined)"}).values('date_created').annotate(created_count=Count('id'))
         
         time_range, time_interval_count = self.get_time_range()
-
+        
         points = self.data_points()
         for index, curr_time in enumerate(time_range):
             if index + 1 == len(time_range): continue
             date_filter = {str("%s__range" % self.datetime_field): (curr_time, time_range[index+1])}
             data_array.append((str(curr_time), points.filter(**date_filter).count()))
         return data_array, time_interval_count
-
+    
     def get_time_range(self):
         now = datetime.datetime.now()
         today = datetime.datetime(now.year, now.month, now.day)
@@ -115,23 +86,38 @@ class DashboardWidget(models.Model):
             time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
             return time_range, now.hour/4
         elif self.time_period == '24':
-            time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
-            return time_range, now.hour/4
-        elif self.time_period == 'WE':
-            # TODO change this from 24*6 to the curr week
-            time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24*6)]
+            time_range = [now - datetime.timedelta(minutes=10*x) for x in range(0, 24 * 6)]
             time_range.reverse()
-            return time_range, 7#12 + now.hour/12
+            return time_range, 6
+        elif self.time_period == 'WE':
+            first_week_day = today - datetime.timedelta(days=calendar.weekday(now.year, now.month, now.day))
+            time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(0, 7 * 24)]
+            return time_range, 7
+        elif self.time_period == '7D':
+            time_range = [now - datetime.timedelta(hours=x) for x in range(0, now.hour + 24 * 6)]
+            time_range.reverse()
+            return time_range, 7
+        elif self.time_period == 'MO':
+            first_month_day = datetime.datetime(now.year, now.month, now.day)
+            time_range = [first_month_day + datetime.timedelta(days=x) for x in range(0, now.day)]
+            return time_range, now.day
+        elif self.time_period == '30':
+            time_range = [now - datetime.timedelta(days=x) for x in range(0, 30)]
+            time_range.reverse()
+            return time_range, 30
+        elif self.time_period == 'YR':
+            first_year_day = datetime.datetime(now.year, 1, 1)
+            day_of_year = now.timetuple().tm_yday
+            time_range = [first_year_day + datetime.timedelta(days=10 * x) for x in range(0, day_of_year/10)]
+            return time_range, day_of_year / 10
+        elif self.time_period == '36':
+            time_range = [now - datetime.timedelta(days=365) for x in range(0, 365)]
+            time_range.reverse()
+            return time_range, 365
         """
         TODO
-        ('7D', '7 Days'),
-        ('MO', 'Monthly'),
-        ('30', '30 Days'),
-        ('YR', 'Year'),
-        36
         ('AT', 'All Time'),
         """
-
     @property
     def loader_top(self):
         return (self.height - LOADING_IMG_HEIGHT) / 2.0
