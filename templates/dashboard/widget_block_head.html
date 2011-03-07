@@ -9,7 +9,7 @@
             yaxis: { min: 0 },
             legend: {
                 backgroundOpacity: 0,
-                position: "se",
+                position: "nw",
             },
         }
         
@@ -39,6 +39,15 @@
 
                 chart_data[{{ widget.id }}] = data_list;
                 chart_options[{{ widget.id }}] = options;
+                
+                {% if fullscreen %}
+                    $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_SIZE_FACTOR);
+                    $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_SIZE_FACTOR);
+                {% else %}
+                    $("#chart_div{{ widget.id }}").height({{ widget.height }} * WIDGET_SIZE_FACTOR);
+                    $("#chart_div{{ widget.id }}").width({{ widget.width }} * WIDGET_SIZE_FACTOR);
+                {% endif %}
+
                 redrawChart({{ widget.id }});
                 $("#data_loading_img{{ widget.id }}").hide();
             }
@@ -50,11 +59,7 @@
           $("#fullscreen_btn{{ widget.id }}").live("click", function() {
               window.open("{% url widget_view widget.id %}", 'window', ',type=fullWindow,fullscreen,scrollbars=no,top=0,left=0,height=' + screen.height + ',width=' + screen.width);
           });
-            
-          $("#redrawer").live('click', function() {
-              redrawChart({{ widget.id }});
-          });
-        
+                    
           $("#fullscreen_btn{{ widget.id }}").button({
               text: false,
               icons: {

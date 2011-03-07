@@ -3,13 +3,13 @@
 
 {% block head %}
     <style>
+        body { font-size: 50%; }
         #sortable { list-style-type: none; margin: 10px; padding: 0; }
-        #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; font-size: 4em; text-align: center; }
+        #sortable li { margin: 3px 3px 3px 0; padding: 1px; float: left; font-size: 4em; text-align: center; background: white; }
         .tickLabel { padding-top: 20px; }
     </style>
     <script>
         jQuery(document).ready(function($) {
-            WIDGET_SIZE_FACTOR = .9
             $(".sortable-object").each(function() { 
                 $(this).resizable({});
             });
@@ -42,7 +42,6 @@
 
             //$("#sortable").disableSelection();
             $("#sortable").bind("sortupdate", function() {
-                $("#redrawer").click();
                 var id_order = new Array();
                 $(".sortable-object").each(function() {
                     var widget_id = $(this).attr("data-id");
@@ -66,7 +65,6 @@
 {% endblock %}
 
 {% block body %}
-    <input id="redrawer" type="submit" />
     <div class="demo">
 
         <ul id="sortable">

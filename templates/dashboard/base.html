@@ -10,9 +10,10 @@
         <script src="http://jqueryui.com/ui/jquery.ui.mouse.js"></script> 
         <script src="http://jqueryui.com/ui/jquery.ui.sortable.js"></script> 
         <script src="http://jqueryui.com/ui/jquery.ui.resizable.js"></script> 
-        <link rel="stylesheet" href="http://jqueryui.com/demos/demos.css">
         <link rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css"> 
         <script>
+            WIDGET_SIZE_FACTOR = .95
+
             var chart_data = {};
             var chart_options = {};
             
@@ -22,10 +23,9 @@
         </script>
         <meta charset="utf-8">
         
-
         {% block head %}{% endblock %}
     </head>    
-    <body>
+    <body bgcolor="silver">
         {% block body %}{% endblock %}
     </body>
 </html>

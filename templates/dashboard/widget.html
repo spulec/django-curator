@@ -3,12 +3,14 @@
 
 {% block head %}
 
-    {% widget_tag_head widget %} 
+    {% widget_tag_head widget 1 %} 
 
 {% endblock %}
 
 {% block body %}
 
-    {% widget_tag_body widget %}
+    <div style="background: white;">
+        {% widget_tag_body widget %}
+    </div>
     
 {% endblock %}
