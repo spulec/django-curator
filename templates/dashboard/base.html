@@ -2,7 +2,6 @@
     <head>
         <title>Dashboard</title>
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
-        <script type='text/javascript' src='https://www.google.com/jsapi'></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js" type="text/javascript"></script> 
         <script src="{% url dashboard-media 'js/jquery.flot.js' %}"></script> 
         <script src="http://jqueryui.com/ui/jquery.ui.core.js"></script> 
@@ -12,7 +11,9 @@
         <script src="http://jqueryui.com/ui/jquery.ui.resizable.js"></script> 
         <link rel="stylesheet" href="http://jqueryui.com/themes/base/jquery.ui.all.css"> 
         <script>
-            WIDGET_SIZE_FACTOR = .95
+            WIDGET_SIZE_FACTOR = .97
+            WIDGET_FULLSCREEN_HEIGHT = .9
+            WIDGET_FULLSCREEN_WIDTH = .98
 
             var chart_data = {};
             var chart_options = {};
