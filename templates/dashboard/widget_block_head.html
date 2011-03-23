@@ -27,7 +27,7 @@
                 
                 data = data_list[0].data
                 $.each(json_data['data_points'], function(index, value) {
-                    value[0] = new Date(value[0]).getTime();
+                    value[0] = new Date(value[0] * 1000).getTime();
                     data.push(value);
                 });
                 options.xaxis = {

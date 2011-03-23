@@ -5,6 +5,7 @@ For next release:
 
 Ice box:
 ------------------
+-fix timezone issues
 -add all-time period
 -mouse hover on chart
 -add edit button to widgets
