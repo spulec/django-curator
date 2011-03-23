@@ -92,7 +92,7 @@ class DashboardWidget(models.Model):
         data_map = {}
         
         time_range, time_filter, time_interval = self.get_time_range()
-        select_data = {"datetime": """%s('%s', last_login)""" % (self.get_db_time_formatter(), time_filter)}
+        select_data = {"datetime": """%s(%s, '%s')""" % (self.get_db_time_formatter(), self.datetime_field, time_filter)}
         date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
         time_range = [time.strftime("%s") for time in time_range]
         
