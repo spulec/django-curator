@@ -44,4 +44,6 @@ def widget_data(request, widget_id):
     json_data = {}
     json_data['data_points'] = widget_data
     json_data['time_intervals'] = time_intervals
+    json_data['height'] = widget.height
+    json_data['width'] = widget.width
     return HttpResponse(json.dumps(json_data), mimetype='application/json')

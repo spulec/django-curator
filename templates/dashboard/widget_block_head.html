@@ -33,20 +33,20 @@
                 options.xaxis = {
                     mode: "time",
                     minTickSize: [1, json_data['time_intervals']],
-                    //ticks: json_data['time_intervals'],
-                    //min: data[0][0],
-                    //max: data[data.length-1][0],
                 }
 
                 chart_data[{{ widget.id }}] = data_list;
                 chart_options[{{ widget.id }}] = options;
                 
+                height = json_data['height'];
+                width = json_data['width'];
+                
                 {% if fullscreen %}
                     $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_FULLSCREEN_HEIGHT);
                     $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_FULLSCREEN_WIDTH);
                 {% else %}
-                    $("#chart_div{{ widget.id }}").height({{ widget.height }} * WIDGET_SIZE_FACTOR);
-                    $("#chart_div{{ widget.id }}").width({{ widget.width }} * WIDGET_SIZE_FACTOR);
+                    $("#chart_div{{ widget.id }}").height(height * WIDGET_SIZE_FACTOR);
+                    $("#chart_div{{ widget.id }}").width(width * WIDGET_SIZE_FACTOR);
                 {% endif %}
 
                 redrawChart({{ widget.id }});

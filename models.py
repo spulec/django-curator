@@ -74,15 +74,19 @@ class DashboardWidget(models.Model):
         fields = self.get_class()._meta.local_fields
         return [(field.name, field.name) for field in fields if field.__class__.__name__ in ['DateField', 'DateTimeField']]
 
-    def get_db_time_formatter(self):
+    def get_select_data(self, time_filter):
         engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
         alias = ENGINE_MODULES.get(engine, None)
+
         if alias == 'sqlite3':
-            return "strftime"
+            select_filter = """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field)
         elif alias == 'mysql':
-            return 'DATE_FORMAT'
+            select_filter = """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter)
         else:
             NotImplemented
+        
+        return {"datetime": select_filter}
+    
 
     def data_points(self):
         filter_dict = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
@@ -92,14 +96,16 @@ class DashboardWidget(models.Model):
         data_map = {}
         
         time_range, time_filter, time_interval = self.get_time_range()
-        select_data = {"datetime": """%s(%s, '%s')""" % (self.get_db_time_formatter(), self.datetime_field, time_filter)}
+
         date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
+        # Convert time_range to timestamps
         time_range = [time.strftime("%s") for time in time_range]
         
         for index, curr_time in enumerate(time_range):
             if index + 1 == len(time_range): continue
             data_map[curr_time] = 0
 
+        select_data = self.get_select_data(time_filter)
         points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
         for point in points:
             point_datetime = datetime.datetime.strptime(point['datetime'], time_filter.replace("%%", "%"))
