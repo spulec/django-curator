@@ -2,14 +2,11 @@ For next release:
 ------------------
 
 
-
 Ice box:
 ------------------
 -fix timezone issues
 -add all-time period
--mouse hover on chart
--add edit button to widgets
--better sorting widget column issues
 -move all jqeury onload together
 -better datetime_field dropdown
+-better sorting widget column issues
 

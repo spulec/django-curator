@@ -21,6 +21,20 @@
             function redrawChart(widget_id) {
                 $.plot($("#chart_div" + widget_id), chart_data[widget_id], chart_options[widget_id]);
             }
+            
+            function showTooltip(x, y, contents) {
+                    $('<div id="tooltip">' + contents + '</div>').css( {
+                        position: 'absolute',
+                        display: 'none',
+                        top: y + 5,
+                        left: x + 5,
+                        'font-size': '16px',
+                        border: '1px solid #fdd',
+                        padding: '2px',
+                        'background-color': '#fee',
+                        opacity: 0.80
+                    }).appendTo("body").fadeIn(200);
+            }
         </script>
         <meta charset="utf-8">
         

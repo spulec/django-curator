@@ -23,7 +23,7 @@ TIME_PERIOD_CHOICES = (
     ('30', '30 Days'),
     ('YR', 'Year'),
     ('36', '365 Days'),
-    ('AT', 'All Time'),
+    #('AT', 'All Time'),
 )
 
 ENGINE_MODULES = {
@@ -78,6 +78,7 @@ class DashboardWidget(models.Model):
         engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
         alias = ENGINE_MODULES.get(engine, None)
 
+        #TODO convert to dict
         if alias == 'sqlite3':
             select_filter = """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field)
         elif alias == 'mysql':
@@ -96,8 +97,13 @@ class DashboardWidget(models.Model):
         data_map = {}
         
         time_range, time_filter, time_interval = self.get_time_range()
+        unescaped_time_filter = time_filter.replace("%%", "%")
 
         date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
+
+        # Convert to string and back to lose datetime precision
+        time_range = [datetime.datetime.strptime(time.strftime(unescaped_time_filter), unescaped_time_filter) for time in time_range]
+
         # Convert time_range to timestamps
         time_range = [time.strftime("%s") for time in time_range]
         
@@ -108,7 +114,7 @@ class DashboardWidget(models.Model):
         select_data = self.get_select_data(time_filter)
         points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
         for point in points:
-            point_datetime = datetime.datetime.strptime(point['datetime'], time_filter.replace("%%", "%"))
+            point_datetime = datetime.datetime.strptime(point['datetime'], unescaped_time_filter)
             data_map[point_datetime.strftime("%s")] = point['count']
         
         data_array = data_map.items()

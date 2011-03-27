@@ -1,18 +1,25 @@
     <script type='text/javascript'>
         
-      function loadChart{{ widget.id }}() {
+        function loadChart{{ widget.id }}() {
         $("#data_loading_img{{ widget.id }}").show();
         var data_list = [{data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "blue"}];
-        
+
         var options = {
             xaxis: { mode: "time" },
             yaxis: { min: 0 },
             legend: {
                 backgroundOpacity: 0,
-                position: "ne",
+                position: "nw",
+            },
+            grid: {
+                hoverable: true
+            },
+            series: {
+                lines: { show: true },
+                points: { show: true },
             },
         }
-        
+
         chart_data[{{ widget.id }}] = data_list;
         chart_options[{{ widget.id }}] = options;
         redrawChart({{ widget.id }});
@@ -24,7 +31,7 @@
             url: "{% url widget_data widget.id %}",
             success: function(json_data) { 
                 console.log("success-data-ajax: " + json_data['data_points'].length);
-                
+        
                 data = data_list[0].data
                 $.each(json_data['data_points'], function(index, value) {
                     value[0] = new Date(value[0] * 1000).getTime();
@@ -37,10 +44,10 @@
 
                 chart_data[{{ widget.id }}] = data_list;
                 chart_options[{{ widget.id }}] = options;
-                
+        
                 height = json_data['height'];
                 width = json_data['width'];
-                
+        
                 {% if fullscreen %}
                     $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_FULLSCREEN_HEIGHT);
                     $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_FULLSCREEN_WIDTH);
@@ -53,33 +60,66 @@
                 $("#data_loading_img{{ widget.id }}").hide();
             }
         });
-      }
+        }
 
-      jQuery(document).ready(function($) {
+        jQuery(document).ready(function($) {
 
           $("#fullscreen_btn{{ widget.id }}").live("click", function() {
               window.open("{% url widget_view widget.id %}", 'window', ',type=fullWindow,fullscreen,scrollbars=no,top=0,left=0,height=' + screen.height + ',width=' + screen.width);
           });
-                    
+            
           $("#fullscreen_btn{{ widget.id }}").button({
               text: false,
               icons: {
                   primary: "ui-icon-plusthick"
               }
           });
-          
+  
+          $("#edit_btn{{ widget.id }}").button({
+              text: false,
+              icons: {
+                  primary: "ui-icon-minusthick"
+              }
+          });
+  
+          $("#edit_btn{{ widget.id }}").live("click", function() {
+              window.open('{% url admin:dashboard_dashboardwidget_change widget.id %}','_newtab');
+          });
+  
           $("#reload_btn{{ widget.id }}").button({
                 text: false,
                 icons: {
                     primary: "ui-icon-arrowrefresh-1-e"
                 }
           });
-          
+  
           $("#reload_btn{{ widget.id }}").live("click", function() {
               loadChart{{ widget.id }}();
           });
 
+          var previousPoint = null;
+          $("#chart_div{{ widget.id }}").bind("plothover", function (event, pos, item) {
+
+              if (item) {
+                  if (previousPoint != item.dataIndex) {
+                      previousPoint = item.dataIndex;
+
+                      $("#tooltip").remove();
+                      var x = new Date(item.datapoint[0]);
+                      var y = item.datapoint[1];
+
+                      showTooltip(item.pageX, item.pageY, x + " = " + y);
+                  }
+              }
+              else {
+                  $("#tooltip").remove();
+                  previousPoint = null;
+              }
+          });
+
           loadChart{{ widget.id }}();
-      });
+          setInterval(loadChart{{ widget.id }}, 60000);
+          
+        });
     </script>
 
