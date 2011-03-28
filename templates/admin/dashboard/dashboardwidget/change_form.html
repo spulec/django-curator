@@ -8,46 +8,23 @@
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.3.min.js"></script>
         <script type="text/javascript" charset="utf-8"> 
             function filter_choices(new_model) { 
-                /*
-                var makeslist = document.getElementById('makes'); 
-                var modelslist = document.getElementById('models'); 
-                var make_id = makeslist.options[makeslist.selectedIndex].value; 
-                var modelstxt = new Array(); 
-                modelstxt[1] = "1\tEscort\n2\tTaurus"; 
-                modelstxt[2] = "1\tAltima\n2\tMaxima"; 
-                var models = modelstxt[make_id].split("\n"); 
-                */
-                
-                console.log('start');
-                var datetime_options = document.getElementById('id_datetime_field');
-                
-                for (var count = datetime_options.options.length-1; count > -1; count--){ 
-                    datetime_options.options[count] = null; 
-                }
-                
-                var new_options = new Array();
-                new_options.push("1\tafdsfag");
-                new_options.push("2\tdsfggdf");
-                new_options.push("3\tsdgfdsfgt");
-                
-                for (i = 0; i < new_options.length; i++){ 
-                    var datetime_vals = new_options[i].split("\t"); 
-                    var option = new Option(datetime_vals[1], datetime_vals[2], false, false); 
-                    datetime_options.options[datetime_options.length] = option; 
-                }
+                $.ajax({ url: "/dashboard/model_fields/" + new_model.value,
+                    success: function(new_options) {
+                        var output = [];
 
-                console.log('end');
-                
+                        $.each(new_options, function(key, value) {
+                            output.push('<option value="'+ value[0] +'">'+ value[0] +'</option>');
+                        });
+
+                        $('#id_datetime_field').html(output.join(''));
+                    },
+                });
             }
 
             $("#id_model").live('change', function() {
                 console.log("changing");
                 var new_model = this.options[this.selectedIndex];
                 filter_choices(new_model);
-            });
-            
-            jQuery(document).ready(function($) {
-                filter_choices();
             });
         </script> 
 

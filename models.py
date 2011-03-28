@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models import Count
 
+from dashboard.utils import get_class, get_datetime_fields
+
 def get_model_choices():
     apps = [app for app in models.get_apps()]
     all_models = []
@@ -51,7 +53,7 @@ class Dashboard(models.Model):
 class DashboardWidget(models.Model):
     dashboard = models.ForeignKey(Dashboard)
     model = models.CharField(max_length=255, choices=MODEL_CHOICES)
-    filter_dict = models.CharField(max_length=255, blank=True, null=True)
+    filter_dict = models.CharField(max_length=255, blank=True, null=True, help_text="e.g.  {'is_active': True, 'username__contains':'steve'}")
     time_period = models.CharField(max_length=2, choices=TIME_PERIOD_CHOICES)
     datetime_field = models.CharField(max_length=255)
     order = models.IntegerField()
@@ -60,19 +62,6 @@ class DashboardWidget(models.Model):
 
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)
-
-    def get_class(self):
-        kls = self.model
-        parts = kls.split('.')
-        module = ".".join(parts[:-1])
-        m = __import__( module )
-        for comp in parts[1:]:
-            m = getattr(m, comp)            
-        return m
-    
-    def get_datetime_fields(self):
-        fields = self.get_class()._meta.local_fields
-        return [(field.name, field.name) for field in fields if field.__class__.__name__ in ['DateField', 'DateTimeField']]
 
     def get_select_data(self, time_filter):
         engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
@@ -88,10 +77,9 @@ class DashboardWidget(models.Model):
         
         return {"datetime": select_filter}
     
-
     def data_points(self):
         filter_dict = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
-        return self.get_class().objects.filter(**filter_dict).order_by(self.datetime_field)
+        return get_class(self.model).objects.filter(**filter_dict).order_by(self.datetime_field)
     
     def data_list(self):
         data_map = {}

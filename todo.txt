@@ -7,6 +7,5 @@ Ice box:
 -fix timezone issues
 -add all-time period
 -move all jqeury onload together
--better datetime_field dropdown
 -better sorting widget column issues
 

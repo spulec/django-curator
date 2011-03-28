@@ -3,7 +3,23 @@
 
 {% block head %}
     <style>
-        body { font-size: 50%; }
+        body { 
+            margin: 0;
+            font-size: 50%;
+        }
+        #header {
+            display: block;
+            height: 75px;
+            width: 100%;
+            background: black;
+            font-size: 16pt;
+            color: white;
+        }
+        
+        #header h1 {
+            margin: 0 10px;        
+        }
+        
         #sortable { 
             list-style-type: none;
             margin: 10px;
@@ -78,6 +94,12 @@
 {% endblock %}
 
 {% block body %}
+    <div id="header">
+        <h1>
+            Django Dashboard
+        </h1>
+    </div>
+
     <div class="demo">
 
         <ul id="sortable">

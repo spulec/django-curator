@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 
 from dashboard.models import Dashboard, DashboardWidget
+from dashboard.utils import get_datetime_fields
 
 def dashboard(request, dashboard_name):
     dashboard = get_object_or_404(Dashboard, name=dashboard_name)
@@ -47,3 +48,9 @@ def widget_data(request, widget_id):
     json_data['height'] = widget.height
     json_data['width'] = widget.width
     return HttpResponse(json.dumps(json_data), mimetype='application/json')
+
+def model_fields(request, model_name):
+    fields = get_datetime_fields(model_name)
+    return HttpResponse(json.dumps(fields), mimetype='application/json')
+    
+
