@@ -7,19 +7,35 @@
             margin: 0;
             font-size: 50%;
         }
+        #footer {
+            position: absolute;
+            bottom: 0px;
+            width: 100%;
+            height: 100px;
+            background-color: #696969; 
+        }
         #header {
             display: block;
             height: 75px;
             width: 100%;
             background: black;
             font-size: 16pt;
+            text-align: center;
             color: white;
+            
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#437ba3', endColorstr='#234b6f'); /* for IE */
+            background: -webkit-gradient(linear, left top, left bottom, from(#437ba3), to(#234b6f)); /* for webkit browsers */
+            background: -moz-linear-gradient(top,  #555,  #437ba3); /* for firefox 3.6+ */     
         }
-        
-        #header h1 {
-            margin: 0 10px;        
+
+        #header a {
+            margin: 10px;
+            float: right;
+            font-size: 12pt;
+            color: black;
+            text-align: right;
         }
-        
+                
         #sortable { 
             list-style-type: none;
             margin: 10px;
@@ -94,20 +110,30 @@
 {% endblock %}
 
 {% block body %}
-    <div id="header">
-        <h1>
-            Django Dashboard
-        </h1>
+    <div id="container">
+        <header>
+            <div id="header">
+                <h1>
+                    Django Dashboard
+                    <a href="/admin/logout/">Logout</a>
+                </h1>
+            </div>
+        </header>
+
+        <div class="demo">
+
+            <ul id="sortable">
+                {% for widget in widgets %}
+                <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="height: {{ widget.height }}; width: {{ widget.width }};">{% widget_tag_body widget %}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+
+        <footer>
+            <div id="footer"></div>
+        </footer>
     </div>
 
-    <div class="demo">
-
-        <ul id="sortable">
-            {% for widget in widgets %}
-            <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="height: {{ widget.height }}; width: {{ widget.width }};">{% widget_tag_body widget %}</li>
-            {% endfor %}
-        </ul>
-
-    </div><!-- End demo -->
 
 {% endblock %}
