@@ -7,6 +7,7 @@ class DashboardWidgetForm(forms.ModelForm):
 
     class Meta:
         model = DashboardWidget
+        exclude = ('order', 'height', 'width')
         widgets = {
             'datetime_field': forms.Select(),
         }

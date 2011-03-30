@@ -56,23 +56,29 @@ class DashboardWidget(models.Model):
     filter_dict = models.CharField(max_length=255, blank=True, null=True, help_text="e.g.  {'is_active': True, 'username__contains':'steve'}")
     time_period = models.CharField(max_length=2, choices=TIME_PERIOD_CHOICES)
     datetime_field = models.CharField(max_length=255)
-    order = models.IntegerField()
-    height = models.IntegerField()
-    width = models.IntegerField()
+    order = models.IntegerField(null=True)
+    height = models.IntegerField(default=200)
+    width = models.IntegerField(default=400)
 
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)
+
+    def save(self, *args, **kwargs):
+        if not self.order:
+            self.order = self.dashboard.dashboardwidget_set.count()
+        super(DashboardWidget, self).save(*args, **kwargs)
 
     def get_select_data(self, time_filter):
         engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
         alias = ENGINE_MODULES.get(engine, None)
 
-        #TODO convert to dict
-        if alias == 'sqlite3':
-            select_filter = """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field)
-        elif alias == 'mysql':
-            select_filter = """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter)
-        else:
+        select_filter_dict = {
+            'sqlite3': """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field),
+            'mysql': """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter),
+        }
+
+        select_filter = select_filter_dict.get(alias, None)
+        if not select_filter:
             NotImplemented
         
         return {"datetime": select_filter}
@@ -85,24 +91,21 @@ class DashboardWidget(models.Model):
         data_map = {}
         
         time_range, time_filter, time_interval = self.get_time_range()
-        unescaped_time_filter = time_filter.replace("%%", "%")
+        escaped_time_filter = time_filter.replace("%", "%%")
 
         date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
-
-        # Convert to string and back to lose datetime precision
-        time_range = [datetime.datetime.strptime(time.strftime(unescaped_time_filter), unescaped_time_filter) for time in time_range]
-
-        # Convert time_range to timestamps
-        time_range = [time.strftime("%s") for time in time_range]
         
         for index, curr_time in enumerate(time_range):
-            if index + 1 == len(time_range): continue
+            # Convert to string and back to lose datetime precision
+            curr_time = datetime.datetime.strptime(curr_time.strftime(time_filter), time_filter)
+            # Convert time_range to timestamps
+            curr_time = curr_time.strftime("%s")
             data_map[curr_time] = 0
 
-        select_data = self.get_select_data(time_filter)
+        select_data = self.get_select_data(escaped_time_filter)
         points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
         for point in points:
-            point_datetime = datetime.datetime.strptime(point['datetime'], unescaped_time_filter)
+            point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
             data_map[point_datetime.strftime("%s")] = point['count']
         
         data_array = data_map.items()
@@ -114,48 +117,48 @@ class DashboardWidget(models.Model):
         today = datetime.datetime(now.year, now.month, now.day)
         # Set first weekday to Sunday
         calendar.setfirstweekday(6)
+
+        time_filter_dict = {
+            'minute': "%m/%d/%Y %H %M",        
+            'hour': "%m/%d/%Y %H",
+            'day': "%m/%d/%Y",
+            'month': "%m/%Y",
+        }
         
         if self.time_period == 'DA':
-            time_range = [today + datetime.timedelta(minutes=10*x) for x in range(0, now.hour*6 + now.minute/10)]
-            time_filter = "%%m/%%d/%%Y %%H %%M"
-            return time_range, time_filter, 'minute' #now.hour/4
+            time_range = [today + datetime.timedelta(minutes=10*x) for x in range(now.hour*6 + now.minute/10 + 1)]
+            time_interval = 'minute'
         elif self.time_period == '24':
-            time_range = [now - datetime.timedelta(minutes=10*x) for x in range(0, 24 * 6)]
+            time_range = [now - datetime.timedelta(minutes=10*x) for x in range(24 * 6 + 1)]
             time_range.reverse()
-            time_filter = "%%m/%%d/%%Y %%H %%M"
-            return time_range, time_filter, 'minute' #6
+            time_interval = 'minute'
         elif self.time_period == 'WE':
             day_of_week = calendar.weekday(now.year, now.month, now.day)
             first_week_day = today - datetime.timedelta(days=day_of_week)
-            time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(0, now.hour + day_of_week * 24)]
-            time_filter = "%%m/%%d/%%Y %%H"
-            return time_range, time_filter, 'hour' #7
+            time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(now.hour + day_of_week * 24 + 1)]
+            time_interval = 'hour'
         elif self.time_period == '7D':
-            time_range = [now - datetime.timedelta(hours=x) for x in range(0, 24 * 7)]
+            time_range = [now - datetime.timedelta(hours=x) for x in range(24 * 7 + 1)]
             time_range.reverse()
-            time_filter = "%%m/%%d/%%Y %%H"
-            return time_range, time_filter, 'hour' #7
+            time_interval = 'hour'
         elif self.time_period == 'MO':
             first_month_day = datetime.datetime(now.year, now.month, 1)
-            time_range = [first_month_day + datetime.timedelta(days=x) for x in range(0, now.day)]
-            time_filter = "%%m/%%d/%%Y"
-            return time_range, time_filter, 'day' #now.day
+            time_range = [first_month_day + datetime.timedelta(days=x) for x in range(now.day + 1)]
+            time_interval = 'day'
         elif self.time_period == '30':
-            time_range = [now - datetime.timedelta(days=x) for x in range(0, 30)]
+            time_range = [now - datetime.timedelta(days=x) for x in range(30 + 1)]
             time_range.reverse()
-            time_filter = "%%m/%%d/%%Y"
-            return time_range, time_filter, 'day' #30
+            time_interval = 'day'
         elif self.time_period == 'YR':
             first_year_day = datetime.datetime(now.year, 1, 1)
             day_of_year = now.timetuple().tm_yday
-            time_range = [first_year_day + datetime.timedelta(days=10 * x) for x in range(0, day_of_year/10)]
-            time_filter = "%%m/%%Y"
-            return time_range, time_filter, 'month' #day_of_year / 10
+            time_range = [first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
+            time_interval = 'month'
         elif self.time_period == '36':
-            time_range = [now - datetime.timedelta(days=365) for x in range(0, 365)]
+            time_range = [now - datetime.timedelta(days=365) for x in range(365 + 1)]
             time_range.reverse()
-            time_filter = "%%m/%%Y"
-            return time_range, time_filter, 'month' #365
+            time_interval = 'month'
+        return time_range, time_filter_dict[time_interval], time_interval
         """
         TODO
         ('AT', 'All Time'),
