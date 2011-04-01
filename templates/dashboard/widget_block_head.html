@@ -24,7 +24,6 @@
         chart_options[{{ widget.id }}] = options;
         redrawChart({{ widget.id }});
 
-        //TODO make this call own function and only call it going forward
         $.ajax({
             method: "GET",
             dataType: 'json',
@@ -52,8 +51,8 @@
                     $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_FULLSCREEN_HEIGHT);
                     $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_FULLSCREEN_WIDTH);
                 {% else %}
-                    $("#chart_div{{ widget.id }}").height(height * WIDGET_SIZE_FACTOR);
-                    $("#chart_div{{ widget.id }}").width(width * WIDGET_SIZE_FACTOR);
+                    $("#chart_div{{ widget.id }}").height(height - 30);
+                    $("#chart_div{{ widget.id }}").width(width - 30);
                 {% endif %}
 
                 redrawChart({{ widget.id }});

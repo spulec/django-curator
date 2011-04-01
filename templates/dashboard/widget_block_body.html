@@ -1,6 +1,8 @@
-    <div id='chart_div{{ widget.id }}' class="chart_div" style='position: relative; width: 100%; height: 100%; z-index: 100;'></div>
-
-    <button id="fullscreen_btn{{ widget.id }}" style="position: absolute; top: 9px; right: 121px; width: 40px; height: 40px; z-index: 150;"></button>
-    <button id="edit_btn{{ widget.id }}" style="position: absolute; top: 9px; right: 81px; width: 40px; height: 40px; z-index: 150;"></button>
-    <button id="reload_btn{{ widget.id }}" style="position:absolute; top: 9px; right: 41px; width: 40px; height: 40px; z-index: 150;"></button>
-    <img id="data_loading_img{{ widget.id }}" src="{% url dashboard-media 'img/ajax-loader.gif' %}" style="top: {{ widget.loader_top }}px; left: {{ widget.loader_left }}px; position: absolute; z-index: 150;"/>
+    <div id='chart_holder{{ widget.id }}' class="chart_holder" style='position: relative; width: 100%; height: 100%; z-index: 100;'>
+        <div id='chart_div{{ widget.id }}' class="chart_div" style='margin: 10; position: relative; width: 100%; height: 100%; z-index: 100;'></div>
+        <button id="fullscreen_btn{{ widget.id }}" style="position: absolute; top: 8px; right: 107px; width: 40px; height: 40px; z-index: 150;"></button>
+        <button id="edit_btn{{ widget.id }}" style="position: absolute; top: 8px; right: 67px; width: 40px; height: 40px; z-index: 150;"></button>
+        <button id="reload_btn{{ widget.id }}" style="position:absolute; top: 8px; right: 27px; width: 40px; height: 40px; z-index: 150;"></button>
+        <img id="data_loading_img{{ widget.id }}" src="{% url dashboard-media 'img/ajax-loader.gif' %}" style="top: {{ widget.loader_top }}px; left: {{ widget.loader_left }}px; position: absolute; z-index: 150;"/>
+    </div>
+    
