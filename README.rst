@@ -13,6 +13,7 @@ or setuptools:
     easy_install -U django-dashboard
 
 Add django-dashboard to the installed apps in your settings.py:
+
     INSTALLED_APPS = (
         'django.contrib.admin',
         'django.contrib.auth',
