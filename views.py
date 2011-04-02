@@ -47,10 +47,12 @@ def widget_size(request):
 @login_required
 def widget_data(request, widget_id):
     widget = get_object_or_404(DashboardWidget, id=widget_id)
-    widget_data, time_intervals = widget.data_list()
+    widget_data, prev_widget_data, time_intervals, prev_time_offset = widget.data_list()
     json_data = {}
     json_data['data_points'] = widget_data
+    json_data['prev_data_points'] = prev_widget_data
     json_data['time_intervals'] = time_intervals
+    json_data['prev_time_offset'] = prev_time_offset
     json_data['height'] = widget.height
     json_data['width'] = widget.width
     return HttpResponse(json.dumps(json_data), mimetype='application/json')

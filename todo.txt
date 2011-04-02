@@ -1,5 +1,6 @@
 For next release:
 ------------------
+-fix rounding error on tooltips
 
 
 

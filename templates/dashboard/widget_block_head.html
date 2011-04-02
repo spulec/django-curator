@@ -1,64 +1,78 @@
     <script type='text/javascript'>
         
         function loadChart{{ widget.id }}() {
-        $("#data_loading_img{{ widget.id }}").show();
-        var data_list = [{data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "blue"}];
+            $("#data_loading_img{{ widget.id }}").show();
+            var data_list = [
+                    {data: [], color: "silver"},
+                    {data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "blue"},
+                ];
 
-        var options = {
-            xaxis: { mode: "time" },
-            yaxis: { min: 0 },
-            legend: {
-                backgroundOpacity: 0,
-                position: "nw",
-            },
-            grid: {
-                hoverable: true
-            },
-            series: {
-                lines: { show: true },
-                points: { show: true },
-            },
-        }
-
-        chart_data[{{ widget.id }}] = data_list;
-        chart_options[{{ widget.id }}] = options;
-        redrawChart({{ widget.id }});
-
-        $.ajax({
-            method: "GET",
-            dataType: 'json',
-            url: "{% url widget_data widget.id %}",
-            success: function(json_data) { 
-                console.log("success-data-ajax: " + json_data['data_points'].length);
-        
-                data = data_list[0].data
-                $.each(json_data['data_points'], function(index, value) {
-                    value[0] = new Date(value[0] * 1000).getTime();
-                    data.push(value);
-                });
-                options.xaxis = {
-                    mode: "time",
-                    minTickSize: [1, json_data['time_intervals']],
-                }
-
-                chart_data[{{ widget.id }}] = data_list;
-                chart_options[{{ widget.id }}] = options;
-        
-                height = json_data['height'];
-                width = json_data['width'];
-        
-                {% if fullscreen %}
-                    $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_FULLSCREEN_HEIGHT);
-                    $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_FULLSCREEN_WIDTH);
-                {% else %}
-                    $("#chart_div{{ widget.id }}").height(height - 30);
-                    $("#chart_div{{ widget.id }}").width(width - 30);
-                {% endif %}
-
-                redrawChart({{ widget.id }});
-                $("#data_loading_img{{ widget.id }}").hide();
+            var options = {
+                xaxis: { mode: "time" },
+                yaxis: { min: 0 },
+                legend: {
+                    backgroundOpacity: 0,
+                    position: "nw",
+                },
+                grid: {
+                    hoverable: true
+                },
+                series: {
+                    lines: { show: true },
+                    //points: { show: true },
+                },
             }
-        });
+
+            chart_data[{{ widget.id }}] = data_list;
+            chart_options[{{ widget.id }}] = options;
+            redrawChart({{ widget.id }});
+            //var prev_time_offset{{ widget.id }} = 0;
+
+            $.ajax({
+                method: "GET",
+                dataType: 'json',
+                url: "{% url widget_data widget.id %}",
+                success: function(json_data) { 
+                    console.log("success-data-ajax: " + json_data['data_points'].length);
+        
+                    prev_data = data_list[0].data
+                    $.each(json_data['prev_data_points'], function(index, value) {
+                        value[0] = new Date(value[0] * 1000).getTime();
+                        prev_data.push(value);
+                    });
+
+                    data = data_list[1].data
+                    $.each(json_data['data_points'], function(index, value) {
+                        value[0] = new Date(value[0] * 1000).getTime();
+                        data.push(value);
+                    });
+                
+                    options.xaxis = {
+                        mode: "time",
+                        minTickSize: [1, json_data['time_intervals']],
+                    }
+                    options.offset = json_data['prev_time_offset'] * 1000;
+                
+                    //prev_time_offset{{ widget.id }} = json_data['prev_time_offset'] * 1000;
+
+                    chart_data[{{ widget.id }}] = data_list;
+                    chart_options[{{ widget.id }}] = options;
+        
+                    height = json_data['height'];
+                    width = json_data['width'];
+        
+                    {% if fullscreen %}
+                        $("#chart_div{{ widget.id }}").height(screen.height * WIDGET_FULLSCREEN_HEIGHT);
+                        $("#chart_div{{ widget.id }}").width(screen.width * WIDGET_FULLSCREEN_WIDTH);
+                    {% else %}
+                        $("#chart_div{{ widget.id }}").height(height - 30);
+                        $("#chart_div{{ widget.id }}").width(width - 30);
+                    {% endif %}
+
+                    redrawChart({{ widget.id }});
+                    $("#data_loading_img{{ widget.id }}").hide();
+                }
+            });
         }
 
         jQuery(document).ready(function($) {
@@ -104,10 +118,15 @@
                       previousPoint = item.dataIndex;
 
                       $("#tooltip").remove();
-                      var x = new Date(item.datapoint[0]);
-                      var y = item.datapoint[1];
+                      if (item.seriesIndex == 0){
+                          debugger
+                          var datetime = new Date(item.datapoint[0] - chart_options[{{ widget.id }}].offset);
+                      }else {
+                          var datetime = new Date(item.datapoint[0]);
+                      }
+                      var value = item.datapoint[1];
 
-                      showTooltip(item.pageX, item.pageY, x + " = " + y);
+                      showTooltip(item.pageX, item.pageY, datetime + " = " + value);
                   }
               }
               else {

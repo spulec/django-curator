@@ -6,8 +6,8 @@
         body { 
             margin: 0;
             font-size: 25%;
-			font-family: 'Helvetica';	
-		}
+            font-family: 'Helvetica';
+        }
         #footer {
             position: absolute;
             bottom: 0px;
@@ -20,7 +20,7 @@
             height: 60px;
             width: 100%;
             background: black;
-            font-size: 16pt;
+            font-size: 14pt;
             text-align: center;
             color: white;
             
@@ -28,7 +28,7 @@
             background: -webkit-gradient(linear, left top, left bottom, from(#437ba3), to(#234b6f)); /* for webkit browsers */
             background: -moz-linear-gradient(top,  #555,  #437ba3); /* for firefox 3.6+ */     
         }
-
+        
         #header a {
             margin: 10px;
             float: right;
@@ -63,17 +63,12 @@
             $("#sortable").sortable();
             $('.sortable-object').each(function(){ 
                 $(this).resizable({ 
-                    resize: function(event, ui) {
-                        //console.log("here");
-                        //$(this).find("div").css(ui.size);
-                    },
                     stop: function(event, ui) { 
                         console.log("bleh");
                         var widget_id = $(this).attr("data-id"); 
                         $(this).find(".chart_div").height(ui.size.height - 30);
                         $(this).find(".chart_div").width(ui.size.width - 30);
-                        //$(this).find(".chart_div").css(ui.size);
-
+                        
                         redrawChart(widget_id); 
                         
                         $.ajax({
@@ -85,7 +80,7 @@
                     }
                 });
             });
-
+            
             //$("#sortable").disableSelection();
             $("#sortable").bind("sortupdate", function() {
                 var id_order = new Array();
@@ -101,40 +96,30 @@
                 });
             });
         });
-
     </script>
-
     {% for widget in widgets %}
         {% widget_tag_head widget %} 
     {% endfor %}
-
 {% endblock %}
-
 {% block body %}
     <div id="container">
         <header>
             <div id="header">
                 <h1>
-                    Django Dashboard
+                    Dashboard
                     <a href="/admin/logout/">Logout</a>
                 </h1>
             </div>
         </header>
-
         <div class="demo">
-
             <ul id="sortable">
                 {% for widget in widgets %}
                 <li class="ui-state-default sortable-object" data-id="{{ widget.id }}" style="height: {{ widget.height }}; width: {{ widget.width }};">{% widget_tag_body widget %}</li>
                 {% endfor %}
             </ul>
-
         </div>
-
         <footer>
             <div id="footer"></div>
         </footer>
     </div>
-
-
 {% endblock %}

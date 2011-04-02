@@ -22,11 +22,18 @@ TIME_PERIOD_CHOICES = (
     ('WE', 'Weekly'),
     ('7D', '7 Days'),
     ('MO', 'Monthly'),
-    ('30', '30 Days'),
+    ('28', '28 Days'),
     ('YR', 'Year'),
     ('36', '365 Days'),
     #('AT', 'All Time'),
 )
+
+TIME_FILTER_DICT = {
+    'minute': "%m/%d/%Y %H %M",
+    'hour': "%m/%d/%Y %H",
+    'day': "%m/%d/%Y",
+    'month': "%m/%Y",
+}
 
 ENGINE_MODULES = {
     'django.db.backends.postgresql_psycopg2': 'postgresql_psycopg2',
@@ -41,6 +48,11 @@ ENGINE_MODULES = {
     'django.contrib.gis.db.backends.oracle': 'oracle',
 }
 
+def get_db_alias():
+    engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
+    return ENGINE_MODULES.get(engine, None)
+
+DB_ALIAS = get_db_alias()
 LOADING_IMG_HEIGHT = 19
 LOADING_IMG_WIDTH = 220
         
@@ -64,20 +76,18 @@ class DashboardWidget(models.Model):
         return "%s : %s" % (self.dashboard, self.model)
 
     def save(self, *args, **kwargs):
-        if not self.order:
+        if self.order is None:
             self.order = self.dashboard.dashboardwidget_set.count()
         super(DashboardWidget, self).save(*args, **kwargs)
 
     def get_select_data(self, time_filter):
-        engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
-        alias = ENGINE_MODULES.get(engine, None)
-
+        
         select_filter_dict = {
             'sqlite3': """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field),
-            'mysql': """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter),
+            'mysql': """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter.replace("M", "i")),
         }
 
-        select_filter = select_filter_dict.get(alias, None)
+        select_filter = select_filter_dict.get(DB_ALIAS, None)
         if not select_filter:
             NotImplemented
         
@@ -89,12 +99,17 @@ class DashboardWidget(models.Model):
     
     def data_list(self):
         data_map = {}
+        prev_data_map = {}
         
-        time_range, time_filter, time_interval = self.get_time_range()
+        time_range, prev_time_range, time_interval = self.get_time_range()
+        time_filter = TIME_FILTER_DICT[time_interval]
         escaped_time_filter = time_filter.replace("%", "%%")
-
-        date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
         
+        date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
+        prev_date_filter = {str("%s__range" % self.datetime_field): (prev_time_range[0], prev_time_range[-1])}
+        
+        prev_time_offset = int((time_range[0] - prev_time_range[0]).total_seconds())
+
         for index, curr_time in enumerate(time_range):
             # Convert to string and back to lose datetime precision
             curr_time = datetime.datetime.strptime(curr_time.strftime(time_filter), time_filter)
@@ -102,63 +117,86 @@ class DashboardWidget(models.Model):
             curr_time = curr_time.strftime("%s")
             data_map[curr_time] = 0
 
+        for index, curr_time in enumerate(prev_time_range):
+            # Convert to string and back to lose datetime precision
+            curr_time = datetime.datetime.strptime(curr_time.strftime(time_filter), time_filter)
+            # Convert time_range to timestamps
+            curr_time = str(int(curr_time.strftime("%s")) + prev_time_offset)
+            prev_data_map[curr_time] = 0
+
         select_data = self.get_select_data(escaped_time_filter)
+        # TODO move these two parts into a function to reduce duplication?
         points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
         for point in points:
             point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
             data_map[point_datetime.strftime("%s")] = point['count']
+        prev_points = self.data_points().filter(**prev_date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
+        for point in prev_points:
+            point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
+            prev_data_map[str(int(point_datetime.strftime("%s")) + prev_time_offset)] = point['count']
         
         data_array = data_map.items()
         data_array.sort()
-        return data_array, time_interval
+        prev_data_array = prev_data_map.items()
+        prev_data_array.sort()
+        return data_array, prev_data_array, time_interval, prev_time_offset
     
     def get_time_range(self):
         now = datetime.datetime.now()
         today = datetime.datetime(now.year, now.month, now.day)
+        
         # Set first weekday to Sunday
         calendar.setfirstweekday(6)
-
-        time_filter_dict = {
-            'minute': "%m/%d/%Y %H %M",        
-            'hour': "%m/%d/%Y %H",
-            'day': "%m/%d/%Y",
-            'month': "%m/%Y",
-        }
         
+        prev_range = []
         if self.time_period == 'DA':
             time_range = [today + datetime.timedelta(minutes=10*x) for x in range(now.hour*6 + now.minute/10 + 1)]
+            prev_range = [time - datetime.timedelta(days=7) for time in time_range]
             time_interval = 'minute'
         elif self.time_period == '24':
             time_range = [now - datetime.timedelta(minutes=10*x) for x in range(24 * 6 + 1)]
             time_range.reverse()
+            prev_range = [time - datetime.timedelta(days=7) for time in time_range]
             time_interval = 'minute'
         elif self.time_period == 'WE':
             day_of_week = calendar.weekday(now.year, now.month, now.day)
             first_week_day = today - datetime.timedelta(days=day_of_week)
             time_range = [first_week_day + datetime.timedelta(hours=x) for x in range(now.hour + day_of_week * 24 + 1)]
+            prev_range = [time - datetime.timedelta(days=7) for time in time_range]
             time_interval = 'hour'
         elif self.time_period == '7D':
             time_range = [now - datetime.timedelta(hours=x) for x in range(24 * 7 + 1)]
             time_range.reverse()
+            prev_range = [time - datetime.timedelta(days=7) for time in time_range]
             time_interval = 'hour'
         elif self.time_period == 'MO':
             first_month_day = datetime.datetime(now.year, now.month, 1)
             time_range = [first_month_day + datetime.timedelta(days=x) for x in range(now.day + 1)]
+            if now.month == 1:
+                prev_first_month_day = datetime.datetime(now.year - 1, 12, 1)
+            else:
+                prev_first_month_day = datetime.datetime(now.year, now.month - 1, 1)
+            #TODO fix bug here if previous month has less days than this one
+            time_range = [prev_first_month_day + datetime.timedelta(days=x) for x in range(now.day + 1)]
             time_interval = 'day'
-        elif self.time_period == '30':
-            time_range = [now - datetime.timedelta(days=x) for x in range(30 + 1)]
+        elif self.time_period == '28':
+            time_range = [now - datetime.timedelta(days=x) for x in range(28 + 1)]
             time_range.reverse()
+            prev_range = [time - datetime.timedelta(days=28) for time in time_range]
             time_interval = 'day'
         elif self.time_period == 'YR':
             first_year_day = datetime.datetime(now.year, 1, 1)
             day_of_year = now.timetuple().tm_yday
             time_range = [first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
+            prev_first_year_day = datetime.datetime(now.year - 1, 1, 1)
+            prev_time_range = [prev_first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
             time_interval = 'month'
         elif self.time_period == '36':
             time_range = [now - datetime.timedelta(days=365) for x in range(365 + 1)]
             time_range.reverse()
+            prev_range = [time - datetime.timedelta(days=365) for time in time_range]
             time_interval = 'month'
-        return time_range, time_filter_dict[time_interval], time_interval
+        return time_range, prev_range, time_interval
         """
         TODO
         ('AT', 'All Time'),
