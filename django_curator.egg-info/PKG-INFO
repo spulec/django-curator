@@ -1,0 +1,15 @@
+Metadata-Version: 1.0
+Name: django-curator
+Version: 0.1
+Summary: Automatic Business Graphs for Django
+Home-page: http://github.com/spulec/django-curator
+Author: Steve Pulec
+Author-email: spulec@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development
