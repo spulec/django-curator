@@ -1,2 +1,4 @@
 include setup.py README.rst MANIFEST.in LICENSE
-recursive-include curator *
+recursive-include curator/templates *
+recursive-include curator/media *
+global-exclude *~

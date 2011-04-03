@@ -10,9 +10,7 @@ setup(
     url='http://github.com/spulec/django-curator',
     description = 'Automatic Business Graphs for Django',
     packages = find_packages(),
-    package_data = {
-        '': ['*.html', '*.js', '*.gif']
-    }
+    include_package_data=True,
     classifiers=[
         'Framework :: Django',
         'Intended Audience :: Developers',
