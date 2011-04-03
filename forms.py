@@ -1,7 +1,7 @@
 from django import forms
 
-from dashboard.models import DashboardWidget
-from dashboard.utils import get_datetime_fields
+from curator.models import DashboardWidget
+from curator.utils import get_datetime_fields
 
 class DashboardWidgetForm(forms.ModelForm):
 

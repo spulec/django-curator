@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 
-from dashboard.models import Dashboard, DashboardWidget
-from dashboard.utils import get_datetime_fields
+from curator.models import Dashboard, DashboardWidget
+from curator.utils import get_datetime_fields
 
 @login_required
 def dashboard(request, dashboard_name):

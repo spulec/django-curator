@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models import Count
 
-from dashboard.utils import get_class, get_datetime_fields
+from curator.utils import get_class, get_datetime_fields
 
 def get_model_choices():
     apps = [app for app in models.get_apps()]
@@ -98,48 +98,34 @@ class DashboardWidget(models.Model):
         return get_class(self.model).objects.filter(**filter_dict).order_by(self.datetime_field)
     
     def data_list(self):
-        data_map = {}
-        prev_data_map = {}
-        
         time_range, prev_time_range, time_interval = self.get_time_range()
         time_filter = TIME_FILTER_DICT[time_interval]
-        escaped_time_filter = time_filter.replace("%", "%%")
-        
-        date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
-        prev_date_filter = {str("%s__range" % self.datetime_field): (prev_time_range[0], prev_time_range[-1])}
-        
         prev_time_offset = int((time_range[0] - prev_time_range[0]).total_seconds())
 
+        data_array = self.datetimes_to_array(time_range, time_filter)
+        prev_data_array = self.datetimes_to_array(prev_time_range, time_filter, prev_time_offset)
+
+        return data_array, prev_data_array, time_interval, prev_time_offset
+
+    def datetimes_to_array(self, time_range, time_filter, offset=0):
+        escaped_time_filter = time_filter.replace("%", "%%")
+        select_data = self.get_select_data(escaped_time_filter)
+        date_filter = {str("%s__range" % self.datetime_field): (time_range[0], time_range[-1])}
+
+        data_map = {}
         for index, curr_time in enumerate(time_range):
             # Convert to string and back to lose datetime precision
             curr_time = datetime.datetime.strptime(curr_time.strftime(time_filter), time_filter)
             # Convert time_range to timestamps
-            curr_time = curr_time.strftime("%s")
+            curr_time = str(int(curr_time.strftime("%s")) + offset)
             data_map[curr_time] = 0
-
-        for index, curr_time in enumerate(prev_time_range):
-            # Convert to string and back to lose datetime precision
-            curr_time = datetime.datetime.strptime(curr_time.strftime(time_filter), time_filter)
-            # Convert time_range to timestamps
-            curr_time = str(int(curr_time.strftime("%s")) + prev_time_offset)
-            prev_data_map[curr_time] = 0
-
-        select_data = self.get_select_data(escaped_time_filter)
-        # TODO move these two parts into a function to reduce duplication?
         points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
         for point in points:
             point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
-            data_map[point_datetime.strftime("%s")] = point['count']
-        prev_points = self.data_points().filter(**prev_date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
-        for point in prev_points:
-            point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
-            prev_data_map[str(int(point_datetime.strftime("%s")) + prev_time_offset)] = point['count']
-        
+            data_map[str(int(point_datetime.strftime("%s")) + offset)] = point['count']
         data_array = data_map.items()
         data_array.sort()
-        prev_data_array = prev_data_map.items()
-        prev_data_array.sort()
-        return data_array, prev_data_array, time_interval, prev_time_offset
+        return data_array
     
     def get_time_range(self):
         now = datetime.datetime.now()
@@ -177,7 +163,7 @@ class DashboardWidget(models.Model):
             else:
                 prev_first_month_day = datetime.datetime(now.year, now.month - 1, 1)
             #TODO fix bug here if previous month has less days than this one
-            time_range = [prev_first_month_day + datetime.timedelta(days=x) for x in range(now.day + 1)]
+            prev_range = [prev_first_month_day + datetime.timedelta(days=x) for x in range(now.day + 1)]
             time_interval = 'day'
         elif self.time_period == '28':
             time_range = [now - datetime.timedelta(days=x) for x in range(28 + 1)]

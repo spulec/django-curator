@@ -6,13 +6,13 @@ Install
 
 Use pip::
 
-	pip install django-dashboard --upgrade
+	pip install django-curator --upgrade
 
 or setuptools::
 
-	easy_install -U django-dashboard
+	easy_install -U django-curator
 
-Add django-dashboard to the installed apps in your settings.py::
+Add django-curator to the installed apps in your settings.py::
 
 	INSTALLED_APPS = (
 	    'django.contrib.admin',
@@ -20,26 +20,26 @@ Add django-dashboard to the installed apps in your settings.py::
 	    'django.contrib.contenttypes',
 	    'django.contrib.sessions',
 
-	    'dashboard',
+	    'curator',
 	    ...
 	)
 
-Add the dashboard to your urls file::
+Add curator to your urls file::
 
 	urlpatterns = patterns('',
 	    ...
-	    (r'^dashboard/', include('dashboard.urls')),
+	    (r'^curator/', include('curator.urls')),
 	    ...
 	)
 
 Finally, migrate with South::
 
-	./manage.py migrate dashboard
+	./manage.py migrate curator
 
 =====
 Usage
 =====
 
-Go to the Django admin and create a new dashbaord. Then create create a widget or two associated with that dashboard. Finally, go to YOURSITE.COM/dashboard/DASHBOARD_NAME/ to see the dashboard.
+Go to the Django admin and create a new dashboard. Then create create a widget or two associated with that dashboard. Finally, go to YOURSITE.COM/curator/DASHBOARD_NAME/ to see the dashboard.
 
 

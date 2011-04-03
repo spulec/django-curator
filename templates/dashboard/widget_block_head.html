@@ -96,7 +96,7 @@
           });
   
           $("#edit_btn{{ widget.id }}").live("click", function() {
-              window.open('{% url admin:dashboard_dashboardwidget_change widget.id %}','_newtab');
+              window.open('{% url admin:curator_dashboardwidget_change widget.id %}','_newtab');
           });
   
           $("#reload_btn{{ widget.id }}").button({

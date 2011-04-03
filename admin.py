@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from dashboard.forms import DashboardWidgetForm
-from dashboard.models import Dashboard, DashboardWidget
+from curator.forms import DashboardWidgetForm
+from curator.models import Dashboard, DashboardWidget
 
 class DashboardWidgetAdmin(admin.ModelAdmin):
     form = DashboardWidgetForm
