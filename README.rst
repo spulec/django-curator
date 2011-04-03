@@ -4,15 +4,15 @@ UNDER DEVELOPMENT
 Install
 =======
 
-Use pip:
+Use pip::
 
 	pip install django-dashboard --upgrade
 
-or setuptools:
+or setuptools::
 
 	easy_install -U django-dashboard
 
-Add django-dashboard to the installed apps in your settings.py:
+Add django-dashboard to the installed apps in your settings.py::
 
 	INSTALLED_APPS = (
 	    'django.contrib.admin',
@@ -24,7 +24,7 @@ Add django-dashboard to the installed apps in your settings.py:
 	    ...
 	)
 
-Add the dashboard to your urls file:
+Add the dashboard to your urls file::
 
 	urlpatterns = patterns('',
 	    ...
@@ -32,7 +32,7 @@ Add the dashboard to your urls file:
 	    ...
 	)
 
-Finally, migrate with South:
+Finally, migrate with South::
 
 	./manage.py migrate dashboard
 
