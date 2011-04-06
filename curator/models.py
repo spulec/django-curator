@@ -4,7 +4,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models, DEFAULT_DB_ALIAS
-from django.db.models import Count
+from django.db.models import Count, permalink
 
 from curator.utils import get_class, get_datetime_fields
 
@@ -67,6 +67,10 @@ class Dashboard(models.Model):
     def __unicode__(self):
         return self.name
 
+    @permalink
+    def get_absolute_url(self):
+        return ('dashboard_view', (), {'dashboard_name': self.name})
+
 class DashboardWidget(models.Model):
     dashboard = models.ForeignKey(Dashboard)
     model = models.CharField(max_length=255, choices=MODEL_CHOICES)
@@ -79,6 +83,10 @@ class DashboardWidget(models.Model):
 
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)
+
+    @permalink
+    def get_absolute_url(self):
+        return ('dashboard_view', (), {'dashboard_name': self.dashboard.name})
 
     def save(self, *args, **kwargs):
         if self.order is None:
