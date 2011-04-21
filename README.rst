@@ -1,4 +1,8 @@
-UNDER DEVELOPMENT
+===========
+Requirements
+===========
+ - **Django >= 1.2**
+ - **MySQL or SQLite backend**
 
 =======
 Install
