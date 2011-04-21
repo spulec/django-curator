@@ -2,6 +2,7 @@
 Requirements
 ===========
  - **Django >= 1.2**
+ - **South**
  - **MySQL or SQLite backend**
 
 =======
