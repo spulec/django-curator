@@ -1,8 +1,8 @@
-=======
+===========
 Requirements
-=======
-*Django >= 1.2
-*MySQL or SQLite backend
+===========
+ - **Django >= 1.2
+ - **MySQL or SQLite backend
 
 =======
 Install
