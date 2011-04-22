@@ -1,3 +1,9 @@
+==========
+Screenshot
+==========
+
+.. image:: http://dl.dropbox.com/u/6758963/django-curator.png
+
 ===========
 Requirements
 ===========
