@@ -6,7 +6,7 @@ DASHBOARD_ROOT = os.path.dirname(__file__)
 
 # place app url patterns here
 urlpatterns = patterns('',
-    url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
+    url(r'^media/(?P<path>.+)?$', 'django.views.static.serve',
         {'document_root': os.path.join(DASHBOARD_ROOT, 'media')}, name='curator-media'),
 
     #(r'^$', 'home', name='dashboard'),

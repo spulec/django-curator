@@ -4,7 +4,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models, DEFAULT_DB_ALIAS
-from django.db.models import Count
+from django.db.models import Count, permalink
 
 from curator.utils import get_class, get_datetime_fields
 
@@ -52,6 +52,11 @@ def get_db_alias():
     engine = settings.DATABASES[DEFAULT_DB_ALIAS]['ENGINE']
     return ENGINE_MODULES.get(engine, None)
 
+# Implementing this because it wasn't added until Python 2.7
+def timestamp_to_seconds(timestamp):
+    return int((timestamp.microseconds + (timestamp.seconds + timestamp.days * 24 * 3600) * 10**6) / 10.0**6)
+
+
 DB_ALIAS = get_db_alias()
 LOADING_IMG_HEIGHT = 19
 LOADING_IMG_WIDTH = 220
@@ -61,6 +66,10 @@ class Dashboard(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    @permalink
+    def get_absolute_url(self):
+        return ('dashboard_view', (), {'dashboard_name': self.name})
 
 class DashboardWidget(models.Model):
     dashboard = models.ForeignKey(Dashboard)
@@ -75,6 +84,10 @@ class DashboardWidget(models.Model):
     def __unicode__(self):
         return "%s : %s" % (self.dashboard, self.model)
 
+    @permalink
+    def get_absolute_url(self):
+        return ('dashboard_view', (), {'dashboard_name': self.dashboard.name})
+
     def save(self, *args, **kwargs):
         if self.order is None:
             self.order = self.dashboard.dashboardwidget_set.count()
@@ -83,8 +96,8 @@ class DashboardWidget(models.Model):
     def get_select_data(self, time_filter):
         
         select_filter_dict = {
-            'sqlite3': """%s('%s', %s)""" % ("strftime", time_filter, self.datetime_field),
-            'mysql': """%s(%s, '%s')""" % ("DATE_FORMAT", self.datetime_field, time_filter.replace("M", "i")),
+            'sqlite3': "strftime('%s', %s)" % (time_filter, self.datetime_field),
+            'mysql': "DATE_FORMAT(%s, '%s')" % (self.datetime_field, time_filter.replace("M", "i")),
         }
 
         select_filter = select_filter_dict.get(DB_ALIAS, None)
@@ -96,11 +109,11 @@ class DashboardWidget(models.Model):
     def data_points(self):
         filter_dict = ast.literal_eval(self.filter_dict) if self.filter_dict else {}
         return get_class(self.model).objects.filter(**filter_dict).order_by(self.datetime_field)
-    
+        
     def data_list(self):
         time_range, prev_time_range, time_interval = self.get_time_range()
         time_filter = TIME_FILTER_DICT[time_interval]
-        prev_time_offset = int((time_range[0] - prev_time_range[0]).total_seconds())
+        prev_time_offset = timestamp_to_seconds(time_range[0] - prev_time_range[0])
 
         data_array = self.datetimes_to_array(time_range, time_filter)
         prev_data_array = self.datetimes_to_array(prev_time_range, time_filter, prev_time_offset)
@@ -119,7 +132,7 @@ class DashboardWidget(models.Model):
             # Convert time_range to timestamps
             curr_time = str(int(curr_time.strftime("%s")) + offset)
             data_map[curr_time] = 0
-        points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count('id')).order_by()
+        points = self.data_points().filter(**date_filter).extra(select=select_data).values('datetime').annotate(count=Count(self.datetime_field)).order_by()
         for point in points:
             point_datetime = datetime.datetime.strptime(point['datetime'], time_filter)
             data_map[str(int(point_datetime.strftime("%s")) + offset)] = point['count']
@@ -175,7 +188,7 @@ class DashboardWidget(models.Model):
             day_of_year = now.timetuple().tm_yday
             time_range = [first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
             prev_first_year_day = datetime.datetime(now.year - 1, 1, 1)
-            prev_time_range = [prev_first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
+            prev_range = [prev_first_year_day + datetime.timedelta(days=10 * x) for x in range(day_of_year/10 + 1)]
             time_interval = 'month'
         elif self.time_period == '36':
             time_range = [now - datetime.timedelta(days=365) for x in range(365 + 1)]

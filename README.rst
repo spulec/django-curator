@@ -1,4 +1,15 @@
-UNDER DEVELOPMENT
+==========
+Screenshot
+==========
+
+.. image:: http://dl.dropbox.com/u/6758963/django-curator.png
+
+===========
+Requirements
+===========
+ - **Django >= 1.2**
+ - **South**
+ - **MySQL or SQLite backend**
 
 =======
 Install
