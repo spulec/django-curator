@@ -1,11 +1,15 @@
 import simplejson as json
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.models import Site
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 
 from curator.models import Dashboard, DashboardWidget
 from curator.utils import get_datetime_fields
+
+BASE_URL = Site.objects.get_current().domain
+
 
 @login_required
 def dashboard(request, dashboard_name):
@@ -14,6 +18,7 @@ def dashboard(request, dashboard_name):
     return render_to_response("curator/dashboard.html", {
         "dashboard": dashboard,
         "widgets": widgets,
+        "site_name": BASE_URL,
     })
 
 @login_required

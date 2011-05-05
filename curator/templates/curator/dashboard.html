@@ -106,7 +106,11 @@
         <header>
             <div id="header">
                 <h1>
-                    Curator
+                    {% if site_name %}
+                        {{ site_name }}'s Curator
+                    {% else %}
+                        Curator
+                    {% endif %}
                     <a href="/admin/logout/">Logout</a>
                 </h1>
             </div>
