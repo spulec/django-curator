@@ -4,9 +4,9 @@
             $("#data_loading_img{{ widget.id }}").show();
             var data_list = [
                     {data: [], color: "silver"},
-                    {data: [], label: "{{ widget.get_model_display }}.{{ widget.datetime_field }}", color: "blue"},
+                    {data: [], label: "{{ widget.get_model_display|title }} {{ widget.datetime_field|title }}", color: "blue"},
                 ];
-
+            
             var options = {
                 xaxis: { mode: "time" },
                 yaxis: { min: 0 },

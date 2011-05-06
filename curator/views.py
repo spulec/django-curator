@@ -66,5 +66,3 @@ def widget_data(request, widget_id):
 def model_fields(request, model_name):
     fields = get_datetime_fields(model_name)
     return HttpResponse(json.dumps(fields), mimetype='application/json')
-    
-
