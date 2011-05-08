@@ -1,6 +1,6 @@
 import os
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
 DASHBOARD_ROOT = os.path.dirname(__file__)
 
@@ -8,8 +8,6 @@ DASHBOARD_ROOT = os.path.dirname(__file__)
 urlpatterns = patterns('',
     url(r'^media/(?P<path>.+)?$', 'django.views.static.serve',
         {'document_root': os.path.join(DASHBOARD_ROOT, 'media')}, name='curator-media'),
-
-    #(r'^$', 'home', name='dashboard'),
     
     url(r'^widget/(?P<widget_id>\d+)/$', 'curator.views.widget', name='widget_view'),
     url(r'^widget/(?P<widget_id>\d+)/data$', 'curator.views.widget_data', name='widget_data'),

@@ -2,74 +2,18 @@
 {% load widget_tag %}
 
 {% block head %}
-    <style>
-        body { 
-            margin: 0;
-            font-size: 25%;
-            font-family: 'Helvetica';
-        }
-        #footer {
-            position: absolute;
-            bottom: 0px;
-            width: 100%;
-            height: 50px;
-            background-color: #696969; 
-        }
-        #header {
-            display: block;
-            height: 60px;
-            width: 100%;
-            background: black;
-            font-size: 14pt;
-            text-align: center;
-            color: white;
-            
-            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#437ba3', endColorstr='#234b6f'); /* for IE */
-            background: -webkit-gradient(linear, left top, left bottom, from(#437ba3), to(#234b6f)); /* for webkit browsers */
-            background: -moz-linear-gradient(top,  #555,  #437ba3); /* for firefox 3.6+ */     
-        }
-        
-        #header a {
-            margin: 10px;
-            float: right;
-            font-size: 12pt;
-            color: black;
-            text-align: right;
-        }
-                
-        #sortable { 
-            list-style-type: none;
-            margin: 10px;
-            padding: 0; 
-        }
-        #sortable li { 
-            margin: 3px 3px 3px 20px; 
-            padding: 1px;
-            float: left;
-            font-size: 4em; 
-            text-align: center;
-            background: white;
-            -moz-border-radius: 15px;
-            border-radius: 15px;
-        }
-        .tickLabel { padding-top: 20px; }
-    </style>
+    <link rel="stylesheet" href="{% url curator-media 'css/global.css' %}"> 
     <script>
         jQuery(document).ready(function($) {
-            $(".sortable-object").each(function() { 
-                $(this).resizable({});
-            });
-            
             $("#sortable").sortable();
-            $('.sortable-object').each(function(){ 
-                $(this).resizable({ 
-                    stop: function(event, ui) { 
-                        console.log("bleh");
-                        var widget_id = $(this).attr("data-id"); 
+            $('.sortable-object').each(function(){
+                $(this).resizable({
+                    stop: function(event, ui) {
+                        var widget_id = $(this).data("id"); 
                         $(this).find(".chart_div").height(ui.size.height - 30);
                         $(this).find(".chart_div").width(ui.size.width - 30);
                         
-                        redrawChart(widget_id); 
+                        redraw_chart(widget_id);
                         
                         $.ajax({
                             type: "POST",
@@ -81,11 +25,10 @@
                 });
             });
             
-            //$("#sortable").disableSelection();
             $("#sortable").bind("sortupdate", function() {
                 var id_order = new Array();
                 $(".sortable-object").each(function() {
-                    var widget_id = $(this).attr("data-id");
+                    var widget_id = $(this).data("id");
                     id_order.push(widget_id);
                 });
                 $.ajax({
@@ -97,9 +40,11 @@
             });
         });
     </script>
+    <script>
     {% for widget in widgets %}
         {% widget_tag_head widget %} 
     {% endfor %}
+    </script>
 {% endblock %}
 {% block body %}
     <div id="container">

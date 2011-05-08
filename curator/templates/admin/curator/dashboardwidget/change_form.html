@@ -11,21 +11,16 @@
                 $.ajax({ url: "/curator/model_fields/" + value,
                     success: function(new_options) {
                         var output = [];
-
+                        
                         $.each(new_options, function(key, value) {
                             output.push('<option value="'+ value[0] +'">'+ value[0] +'</option>');
                         });
-
+                        
                         $('#id_datetime_field').html(output.join(''));
                     },
                 });
             }
-
-            $(document).ready(function() {
-                var new_model = document.getElementById("id_model")
-                filter_choices(new_model.options[new_model.selectedIndex]);                
-            });
-
+            
             $("#id_model").live('change', function() {
                 console.log("changing");
                 var new_model = this.options[this.selectedIndex];

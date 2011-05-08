@@ -21,12 +21,14 @@ def dashboard(request, dashboard_name):
         "site_name": BASE_URL,
     })
 
+
 @staff_member_required
 def widget(request, widget_id):
     widget = get_object_or_404(DashboardWidget, id=widget_id)
     return render_to_response("curator/widget.html", {
         "widget": widget,
     })
+
 
 @staff_member_required
 def widget_order(request, dashboard_name):
@@ -38,6 +40,7 @@ def widget_order(request, dashboard_name):
         widget.save()
     return HttpResponse("ok")
 
+
 @staff_member_required
 def widget_size(request):
     widget_id = request.POST.get("id")
@@ -48,6 +51,7 @@ def widget_size(request):
     widget.width = width
     widget.save()
     return HttpResponse("ok")
+
 
 @staff_member_required
 def widget_data(request, widget_id):
@@ -61,6 +65,7 @@ def widget_data(request, widget_id):
     json_data['height'] = widget.height
     json_data['width'] = widget.width
     return HttpResponse(json.dumps(json_data), mimetype='application/json')
+
 
 @staff_member_required
 def model_fields(request, model_name):
