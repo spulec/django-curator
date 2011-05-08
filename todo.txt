@@ -1,13 +1,9 @@
 For next release:
 ------------------
--fix rounding error on tooltips
-
 
 
 Ice box:
 ------------------
--fix timezone issues
 -add all-time period
--move all jqeury onload together
 -better sorting widget column issues
 

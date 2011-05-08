@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-curator',
-    version='0.1',
+    version='0.1.1',
     author='Steve Pulec',
     author_email='spulec@gmail.com',
     url='http://github.com/spulec/django-curator',
