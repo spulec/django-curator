@@ -146,7 +146,7 @@ jQuery(document).ready(function($) {
     });
     
     for(var widget_id in chart_data) {
-        setInterval(load_chart(widget_id), 60000);
+        setInterval("load_chart(" + widget_id + ")", 60000);
     }
 
 });
